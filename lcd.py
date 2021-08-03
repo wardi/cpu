@@ -65,7 +65,26 @@ def write(s):
         GPIO.output(RS, 1)
         GPIO.output(RW, 0)
         enable()
-    time.sleep(0.0001)
+
+def read(n=1):
+    for p in range(8):
+        GPIO.setup(p, GPIO.IN)
+    GPIO.output(RS, 1)
+    GPIO.output(RW, 1)
+    out = []
+    for i in range(n):
+        b = 0
+        GPIO.output(E, 1)
+        time.sleep(READY_TIME)
+        for p in range(8):
+            b |= GPIO.input(p) << p
+        GPIO.output(E, 0)
+        out.append(chr(b))
+    GPIO.output(RW, 0)
+    for p in range(8):
+        GPIO.setup(p, GPIO.OUT)
+    return ''.join(out)
+
 
 try:
     init()
@@ -73,8 +92,15 @@ try:
     command(0b00001110)  # cursor
     command(0b00000110)  # move direction, shift
     command(0b00000001)  # clear
-    for a in range(100):
-        write('Wacky Plunga')
+
+    command(0b01000000)  # cgram address 0
+    write('\xaa\x55\xaa\x55\xaa\x55\xaa\x55')
+    write('\x55\xaa\x55\xaa\x55\xaa\x55\xaa')
+    command(0b01000000)  # cgram address 0
+    print(repr(read(3)))
+
+    command(0b10000000)
+    write('\x00\x01'*40)
 finally:
     cleanup()
 
