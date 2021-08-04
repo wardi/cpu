@@ -1,0 +1,54 @@
+
+
+JMP
+ - low, high (<2**15)
+
+
+ADC     
+
+SBC	S Z C
+ - immed
+ - ddram/cgram
+
+BMI	(S)
+ - offset
+BPL	(S)
+ - offset
+
+BCS	(C)
+ - offset
+BCC	(C)
+ - offset
+
+BNE	(Z)
+ - offset
+BEQ	(Z)
+ - offset
+
+ROR	C
+
+AND     S Z
+ - immed
+ - ddram/cgram
+
+
+DDR     set ddram address                    -  RS=0 RW=0 0b1xxxxxxx
+ - A
+ - immed
+
+CGR     set character generator ram address  -  RS=0 RW=0 0b01xxxxxx
+CSH     set cursor/shift display             -  RS=0 RW=0 0b0001sr--
+DSP     set display, cursor on/off and blink -  RS=0 RW=0 0b00001dcb
+DSH     set direction and shiftdisplay       -  RS=0 RW=0 0b000001is
+HOM     reset to home location               -  RS=0 RW=0 0b0000001-
+CLR     clear display                        -  RS=0 RW=0 0b00000001
+RBA     read busy flag and address           -  RS=0 RW=0
+
+LDA     read from ddram/cgram/immed          -  RS=1 RW=1
+ - ddram/cgram
+ - immed
+*(<0x80) write to ddram/cgram                -  RS=1 RW=0
+STA     write to ddram/cgram (>=0x80 ok)     -  RS=1 RW=0
+
+
+BTN     read buttons
