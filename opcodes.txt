@@ -28,6 +28,7 @@ BEQ	(Z)
  - offset
 
 ROR	C
+ROL	C
 
 AND     S Z
  - immed
