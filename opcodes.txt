@@ -4,7 +4,9 @@ JMP
  - low, high (<2**15)
 
 
-ADC     
+ADC     S Z C
+ - immed
+ - ddram/cgram
 
 SBC	S Z C
  - immed
@@ -28,6 +30,9 @@ BEQ	(Z)
 ROR	C
 
 AND     S Z
+ - immed
+ - ddram/cgram
+BIT     S Z
  - immed
  - ddram/cgram
 
