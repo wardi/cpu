@@ -25,6 +25,8 @@ def init():
         GPIO.output(p, 0)
 
 def cleanup():
+    GPIO.output(RS, 0)
+    GPIO.output(RW, 1)
     for p in range(NUM_PINS):
         GPIO.setup(p, GPIO.IN)
 
@@ -92,6 +94,7 @@ try:
     command(0b00001110)  # cursor
     command(0b00000110)  # move direction, shift
     command(0b00000001)  # clear
+    command(0b00000010)  # dram position
 
     command(0b01000000)  # cgram address 0
     write('\xaa\x55\xaa\x55\xaa\x55\xaa\x55')
@@ -100,7 +103,8 @@ try:
     print(repr(read(3)))
 
     command(0b10000000)
-    write('\x00\x01'*40)
+    write('\xa4\xa5'*40)
 finally:
-    cleanup()
+    pass
+    #cleanup()
 

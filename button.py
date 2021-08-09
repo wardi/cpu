@@ -17,7 +17,6 @@ def init():
     GPIO.setmode(GPIO.BCM)
     for p in ALL_PINS:
         GPIO.setup(p, GPIO.IN)
-        GPIO.output(p, 0)
 
 def read():
     b = []
@@ -26,6 +25,7 @@ def read():
     return b
 
 
+init()
 buttons = read()
 
 while True:
@@ -33,7 +33,7 @@ while True:
     if b == buttons:
         continue
 
-    print(datetime.datetime.now().isoformat()), end=' ')
+    print(datetime.datetime.now().isoformat(), end=' ')
     for state, label in zip(b, 'ABUDLR'):
         if state:
             print(label, end=' ')
