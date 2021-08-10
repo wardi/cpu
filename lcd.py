@@ -3,6 +3,8 @@
 from RPi import GPIO
 import time
 
+import car
+
 D0 = 0
 D1 = 1
 D2 = 2
@@ -60,10 +62,10 @@ def enable():
     GPIO.output(E, 0)
 
 def write(s):
-    for c in s:
+    for b in s:
         wait()
         for p in range(8):
-            GPIO.output(p, (ord(c) >> p) & 1)
+            GPIO.output(p, (b >> p) & 1)
         GPIO.output(RS, 1)
         GPIO.output(RW, 0)
         enable()
@@ -97,14 +99,20 @@ try:
     command(0b00000010)  # dram position
 
     command(0b01000000)  # cgram address 0
-    write('\xaa\x55\xaa\x55\xaa\x55\xaa\x55')
-    write('\x55\xaa\x55\xaa\x55\xaa\x55\xaa')
+
+    write(car.OPPONENT[19])
+    write(car.OPPONENT[13])
+    write(car.OPPONENT[7])
+    write(car.OPPONENT[1])
+    write(car.PLAYER[16])
+    write(car.PLAYER[10])
+    write(car.PLAYER[4])
+
     command(0b01000000)  # cgram address 0
     print(repr(read(3)))
 
     command(0b10000000)
-    write('\xa4\xa5'*40)
+    write(b'\x00\x01\x02\x03  \x04\x05\x06')
 finally:
-    pass
-    #cleanup()
+    cleanup()
 

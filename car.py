@@ -1,7 +1,7 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 ##### ##### ##### ## character cells are 5x8 with 1 pixel gap in between
-OPPONENT = '''
+OPPONENT_TEXT = '''
     XXX   XXXXXX
    XXX XXXXXXX  X
   XXX XXXXXXX    XX
@@ -13,7 +13,7 @@ XXXXXXXXXXXXXXXXXXXX
 '''
 
 ##### ##### ##### keep within 3 chars to reserve 1 byte of cgram
-PLAYER = '''
+PLAYER_TEXT = '''
     XX  XXXXXX
    X  XX      XX
   X       XXXX  X
@@ -51,12 +51,9 @@ def bin_to_grid(b):
         g = [row << 5 >> shift for row in b]
         if not any(row for row in g):
             break
-        o.append([row & 0x1f for row in g])
+        o.append(bytes([row & 0x1f for row in g]))
         shift += 1
     return o
 
-opponent = text_to_bin(OPPONENT)
-player = text_to_bin(PLAYER)
-
-print(bin_to_grid(opponent))
-print(bin_to_grid(player))
+OPPONENT = bin_to_grid(text_to_bin(OPPONENT_TEXT))
+PLAYER = bin_to_grid(text_to_bin(PLAYER_TEXT))
