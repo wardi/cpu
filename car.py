@@ -17,7 +17,7 @@ PLAYER_TEXT = '''
     XX  XXXXXX
    X  XX      XX
   X       XXXX  X
- X  XXX  XXXX   X
+ X  X X  XXXX   X
 X              X
  X XX    XX   X
   XXXXXXXXXXXX
@@ -56,4 +56,6 @@ def bin_to_grid(b):
     return o
 
 OPPONENT = bin_to_grid(text_to_bin(OPPONENT_TEXT))
-PLAYER = bin_to_grid(text_to_bin(PLAYER_TEXT))
+# pad arrays to same length
+PLAYER = bin_to_grid(text_to_bin(PLAYER_TEXT)) + [b'\x00'*8] * 3
+
