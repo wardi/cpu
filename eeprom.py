@@ -5,8 +5,9 @@ from enum import IntEnum
 from RPi import GPIO
 import time
 
-WRITE_TIME = 100e-9
-READ_TIME = 150e-9
+WRITE_ENABLE_DELAY = 1e-6
+WRITE_SETTLE_DELAY = 1e-2
+READ_DELAY = 1e-2
 
 class Control(IntEnum):
     OE_ = 17
@@ -22,7 +23,7 @@ class Address(IntEnum):
     A5 = 1
     A6 = 0
     A7 = 7
-    A8 = 4
+    A8 = 25 # 4 seems to be unusable, resetting to low
     A9 = 14
     A10 = 18
     A11 = 15
@@ -63,9 +64,10 @@ def write1(addr, data):
         GPIO.output(p, (data >> i) & 1)
     GPIO.output(Control.CE_, 0)
     GPIO.output(Control.WE_, 0)
-    time.sleep(WRITE_TIME)
+    time.sleep(WRITE_ENABLE_DELAY)
     GPIO.output(Control.WE_, 1)
     GPIO.output(Control.CE_, 1)
+    time.sleep(WRITE_SETTLE_DELAY)
 
 def write(addr, data):
     for i, d in enumerate(data):
@@ -75,10 +77,10 @@ def read1(addr):
     for i, p in enumerate(Address):
         GPIO.output(p, (addr >> i) & 1)
     for i, p in enumerate(IO):
-        GPIO.setup(p, GPIO.IN)
+        GPIO.setup(p, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
     GPIO.output(Control.CE_, 0)
     GPIO.output(Control.OE_, 0)
-    time.sleep(READ_TIME)
+    time.sleep(READ_DELAY)
     d = 0
     for i, p in enumerate(IO):
         d |= GPIO.input(p) << i
@@ -94,6 +96,8 @@ def read(addr, n):
 
 
 init()
-write(0x0000, b'hello')
-print(read(0x0000, 5))
+write1(0x05a0, ord('H'))
+print(read1(0x05a0))
+#write(0x05a0, b'hello')
+#print(read(0x05a0, 5))
 cleanup()
