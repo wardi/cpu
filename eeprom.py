@@ -1,12 +1,17 @@
 #!/usr/bin/env python3
 
 from enum import IntEnum
+import time
+import sys
+import random
+import os
 
 from RPi import GPIO
-import time
+
+EEPROM_SIZE = 2**15
 
 WRITE_ENABLE_DELAY = 1e-6
-WRITE_SETTLE_DELAY = 1e-2
+WRITE_SETTLE_DELAY = 10e-3
 READ_DELAY = 1e-6
 
 class Control(IntEnum):
@@ -70,7 +75,7 @@ def read1(addr):
     for i, p in enumerate(Address):
         GPIO.output(p, (addr >> i) & 1)
 
-    GPIO.setup(tuple(IO), GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+    GPIO.setup(tuple(IO), GPIO.IN, pull_up_down=GPIO.PUD_OFF)
     GPIO.output((Control.CE_, Control.OE_), 0)
 
     time.sleep(READ_DELAY)
@@ -86,7 +91,28 @@ def read(addr, n):
     return bytes(read1(addr + i) for i in range(n))
 
 
+
+if '-1' in sys.argv:
+    testdata = b'\xff' * EEPROM_SIZE
+    print('all 1s')
+elif '-0' in sys.argv:
+    testdata = b'\x00' * EEPROM_SIZE
+    print('all 0s')
+else:
+    seed = (sys.argv + [os.urandom(10)])[1]
+    print('using seed: %r' % seed)
+    r = random.Random(seed)
+    testdata = bytes(r.getrandbits(8) for i in range(EEPROM_SIZE))
+
 init()
-write(0x01a0, b'there')
-print(read(0x01a0, 5))
+write(0, testdata)
+t = read(0, EEPROM_SIZE)
+
+if t == testdata:
+    print('test ok')
+else:
+    print('test failed:', ','.join(
+        '%04x' % i for (i, (a, b)) in enumerate(zip(testdata, t)) if a != b)
+    )
+
 cleanup()
