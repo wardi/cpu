@@ -7,7 +7,7 @@ import time
 
 WRITE_ENABLE_DELAY = 1e-6
 WRITE_SETTLE_DELAY = 1e-2
-READ_DELAY = 1e-2
+READ_DELAY = 1e-6
 
 class Control(IntEnum):
     OE_ = 17
@@ -44,17 +44,12 @@ class IO(IntEnum):
 
 def init():
     GPIO.setmode(GPIO.BCM)
-    for p in Control:
-        GPIO.setup(p, GPIO.OUT)
-        GPIO.output(p, 1)
+    GPIO.setup(tuple(Control), GPIO.OUT, initial=1)
+    GPIO.setup((*Address, *IO), GPIO.OUT, initial=0)
 
-    for p in (*Address, *IO):
-        GPIO.setup(p, GPIO.OUT)
-        GPIO.output(p, 0)
 
 def cleanup():
-    for p in (*Address, *IO, *Control):
-        GPIO.setup(p, GPIO.IN)
+    GPIO.cleanup()
 
 
 def write1(addr, data):
@@ -62,11 +57,9 @@ def write1(addr, data):
         GPIO.output(p, (addr >> i) & 1)
     for i, p in enumerate(IO):
         GPIO.output(p, (data >> i) & 1)
-    GPIO.output(Control.CE_, 0)
-    GPIO.output(Control.WE_, 0)
+    GPIO.output((Control.CE_, Control.WE_), 0)
     time.sleep(WRITE_ENABLE_DELAY)
-    GPIO.output(Control.WE_, 1)
-    GPIO.output(Control.CE_, 1)
+    GPIO.output((Control.WE_, Control.CE_), 1)
     time.sleep(WRITE_SETTLE_DELAY)
 
 def write(addr, data):
@@ -76,18 +69,16 @@ def write(addr, data):
 def read1(addr):
     for i, p in enumerate(Address):
         GPIO.output(p, (addr >> i) & 1)
-    for i, p in enumerate(IO):
-        GPIO.setup(p, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-    GPIO.output(Control.CE_, 0)
-    GPIO.output(Control.OE_, 0)
+
+    GPIO.setup(tuple(IO), GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+    GPIO.output((Control.CE_, Control.OE_), 0)
+
     time.sleep(READ_DELAY)
     d = 0
     for i, p in enumerate(IO):
         d |= GPIO.input(p) << i
-    GPIO.output(Control.OE_, 1)
-    GPIO.output(Control.CE_, 1)
-    for i, p in enumerate(IO):
-        GPIO.setup(p, GPIO.OUT)
+    GPIO.output((Control.OE_, Control.CE_), 1)
+    GPIO.setup(tuple(IO), GPIO.OUT, initial=0)
 
     return d
 
@@ -96,8 +87,6 @@ def read(addr, n):
 
 
 init()
-write1(0x05a0, ord('H'))
-print(read1(0x05a0))
-#write(0x05a0, b'hello')
-#print(read(0x05a0, 5))
+write(0x01a0, b'there')
+print(read(0x01a0, 5))
 cleanup()
