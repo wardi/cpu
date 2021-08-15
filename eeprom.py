@@ -1,16 +1,19 @@
 #!/usr/bin/env python3
 
-from enum import Enum
+from enum import IntEnum
 
 from RPi import GPIO
-import datetime
+import time
 
-class Control(Enum):
+WRITE_TIME = 100e-9
+READ_TIME = 150e-9
+
+class Control(IntEnum):
     OE_ = 17
     CE_ = 27
     WE_ = 2
 
-class Address(Enum):
+class Address(IntEnum):
     A0 = 19
     A1 = 13
     A2 = 12
@@ -27,7 +30,7 @@ class Address(Enum):
     A13 = 3
     A14 = 11
 
-class IO(Enum):
+class IO(IntEnum):
     IO0 = 16
     IO1 = 26
     IO2 = 20
@@ -48,5 +51,49 @@ def init():
         GPIO.setup(p, GPIO.OUT)
         GPIO.output(p, 0)
 
+def cleanup():
+    for p in (*Address, *IO, *Control):
+        GPIO.setup(p, GPIO.IN)
+
+
+def write1(addr, data):
+    for i, p in enumerate(Address):
+        GPIO.output(p, (addr >> i) & 1)
+    for i, p in enumerate(IO):
+        GPIO.output(p, (data >> i) & 1)
+    GPIO.output(Control.CE_, 0)
+    GPIO.output(Control.WE_, 0)
+    time.sleep(WRITE_TIME)
+    GPIO.output(Control.WE_, 1)
+    GPIO.output(Control.CE_, 1)
+
+def write(addr, data):
+    for i, d in enumerate(data):
+        write1(addr + i, d)
+
+def read1(addr):
+    for i, p in enumerate(Address):
+        GPIO.output(p, (addr >> i) & 1)
+    for i, p in enumerate(IO):
+        GPIO.setup(p, GPIO.IN)
+    GPIO.output(Control.CE_, 0)
+    GPIO.output(Control.OE_, 0)
+    time.sleep(READ_TIME)
+    d = 0
+    for i, p in enumerate(IO):
+        d |= GPIO.input(p) << i
+    GPIO.output(Control.OE_, 1)
+    GPIO.output(Control.CE_, 1)
+    for i, p in enumerate(IO):
+        GPIO.setup(p, GPIO.OUT)
+
+    return d
+
+def read(addr, n):
+    return bytes(read1(addr + i) for i in range(n))
+
+
 init()
-buttons = read()
+write(0x0000, b'hello')
+print(read(0x0000, 5))
+cleanup()
