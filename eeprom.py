@@ -14,6 +14,8 @@ WRITE_ENABLE_DELAY = 1e-6
 WRITE_SETTLE_DELAY = 10e-3
 READ_DELAY = 1e-6
 
+REPEAT_READ = False
+
 class Control(IntEnum):
     OE_ = 17
     CE_ = 27
@@ -82,10 +84,11 @@ def read1(addr):
     d = 0
     for i, p in enumerate(IO):
         d |= GPIO.input(p) << i
-#    for n in range(10):
-#        for i, p in enumerate(IO):
-#            if (d >> i) & 1 != GPIO.input(p):
-#                assert 0, f'bit {i} error'
+    if REPEAT_READ:
+        for n in range(10):
+            for i, p in enumerate(IO):
+                if (d >> i) & 1 != GPIO.input(p):
+                    assert 0, f'bit {i} error'
 
     GPIO.output((Control.OE_, Control.CE_), 1)
     GPIO.setup(tuple(IO), GPIO.OUT, initial=0)
@@ -99,7 +102,7 @@ def read(addr, n):
 init()
 
 if '-d' in sys.argv:
-    sys.stdout.buffer.write(read(0,1024))
+    sys.stdout.buffer.write(read(0,EEPROM_SIZE))
 else:
 
     if '-1' in sys.argv:
