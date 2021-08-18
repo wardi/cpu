@@ -75,13 +75,18 @@ def read1(addr):
     for i, p in enumerate(Address):
         GPIO.output(p, (addr >> i) & 1)
 
-    GPIO.setup(tuple(IO), GPIO.IN, pull_up_down=GPIO.PUD_OFF)
+    GPIO.setup(tuple(IO), GPIO.IN, pull_up_down=GPIO.PUD_UP)
     GPIO.output((Control.CE_, Control.OE_), 0)
 
     time.sleep(READ_DELAY)
     d = 0
     for i, p in enumerate(IO):
         d |= GPIO.input(p) << i
+#    for n in range(10):
+#        for i, p in enumerate(IO):
+#            if (d >> i) & 1 != GPIO.input(p):
+#                assert 0, f'bit {i} error'
+
     GPIO.output((Control.OE_, Control.CE_), 1)
     GPIO.setup(tuple(IO), GPIO.OUT, initial=0)
 
@@ -91,28 +96,36 @@ def read(addr, n):
     return bytes(read1(addr + i) for i in range(n))
 
 
-
-if '-1' in sys.argv:
-    testdata = b'\xff' * EEPROM_SIZE
-    print('all 1s')
-elif '-0' in sys.argv:
-    testdata = b'\x00' * EEPROM_SIZE
-    print('all 0s')
-else:
-    seed = (sys.argv + [os.urandom(10)])[1]
-    print('using seed: %r' % seed)
-    r = random.Random(seed)
-    testdata = bytes(r.getrandbits(8) for i in range(EEPROM_SIZE))
-
 init()
-write(0, testdata)
-t = read(0, EEPROM_SIZE)
 
-if t == testdata:
-    print('test ok')
+if '-d' in sys.argv:
+    sys.stdout.buffer.write(read(0,1024))
 else:
-    print('test failed:', ','.join(
-        '%04x' % i for (i, (a, b)) in enumerate(zip(testdata, t)) if a != b)
-    )
+
+    if '-1' in sys.argv:
+        testdata = b'\xff' * EEPROM_SIZE
+        print('all 1s')
+    elif '-0' in sys.argv:
+        testdata = b'\x00' * EEPROM_SIZE
+        print('all 0s')
+    elif '-i' in sys.argv:
+        testdata = sys.stdin.buffer.read(EEPROM_SIZE)
+    else:
+        seed = (sys.argv + [
+            str(int.from_bytes(os.urandom(3), byteorder='little'))
+        ])[1]
+        print('using seed: %r' % seed)
+        r = random.Random(seed)
+        testdata = bytes(r.getrandbits(8) for i in range(EEPROM_SIZE))
+
+    write(0, testdata)
+    t = read(0, EEPROM_SIZE)
+
+    if t == testdata:
+        print('test ok')
+    else:
+        print('test failed:', ','.join(
+            '%04x' % i for (i, (a, b)) in enumerate(zip(testdata, t)) if a != b)
+        )
 
 cleanup()
