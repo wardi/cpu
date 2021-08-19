@@ -77,7 +77,7 @@ def read1(addr):
     for i, p in enumerate(Address):
         GPIO.output(p, (addr >> i) & 1)
 
-    GPIO.setup(tuple(IO), GPIO.IN, pull_up_down=GPIO.PUD_UP)
+    GPIO.setup(tuple(IO), GPIO.IN, pull_up_down=GPIO.PUD_OFF) #UP)
     GPIO.output((Control.CE_, Control.OE_), 0)
 
     time.sleep(READ_DELAY)
@@ -97,6 +97,15 @@ def read1(addr):
 
 def read(addr, n):
     return bytes(read1(addr + i) for i in range(n))
+
+
+def unprotect():
+    write1(0x5555, 0xaa)
+    write1(0x2aaa, 0x55)
+    write1(0x5555, 0x80)
+    write1(0x5555, 0xaa)
+    write1(0x2aaa, 0x55)
+    write1(0x5555, 0x20)
 
 
 init()
@@ -120,6 +129,9 @@ else:
         print('using seed: %r' % seed)
         r = random.Random(seed)
         testdata = bytes(r.getrandbits(8) for i in range(EEPROM_SIZE))
+
+    if '-u' in sys.argv:
+        unprotect()
 
     write(0, testdata)
     t = read(0, EEPROM_SIZE)
