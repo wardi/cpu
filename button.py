@@ -16,7 +16,7 @@ ALL_PINS = range(A, A + NUM_PINS)
 def init():
     GPIO.setmode(GPIO.BCM)
     for p in ALL_PINS:
-        GPIO.setup(p, GPIO.IN)
+        GPIO.setup(p, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
 def read():
     b = []
