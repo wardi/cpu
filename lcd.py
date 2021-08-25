@@ -90,48 +90,50 @@ def read(n=1):
     return ''.join(out)
 
 
-try:
-    init()
-    command(0b00111000)
-    command(0b00001100)  # no cursor
-    command(0b00000110)  # move direction, shift
-    command(0b00000001)  # clear
-    command(0b00000010)  # dram position
+if __name__ == '__main__':
+    # test car animation
+    try:
+        init()
+        command(0b00111000)
+        command(0b00001100)  # no cursor
+        command(0b00000110)  # move direction, shift
+        command(0b00000001)  # clear
+        command(0b00000010)  # dram position
 
-    command(0b01000000)  # cgram address 0
-
-    write(car.OPPONENT[19])
-    write(car.OPPONENT[13])
-    write(car.OPPONENT[7])
-    write(car.OPPONENT[1])
-    write(car.PLAYER[19])
-    write(car.PLAYER[13])
-    write(car.PLAYER[7])
-    write(car.PLAYER[1])
-
-    #command(0b01000000)  # cgram address 0
-    #print(repr(read(3)))
-
-    command(0b10000000)
-    write(b'\x00\x01\x02\x03' * 5)
-    command(0b10000000 + 20)
-    write(b'\x04\x05\x06\x07' * 5)
-
-    x = 19
-    while True:
-        time.sleep(0.1)
         command(0b01000000)  # cgram address 0
-        write(car.OPPONENT[x % 24])
-        write(car.OPPONENT[(x - 6) % 24])
-        write(car.OPPONENT[(x - 12) % 24])
-        write(car.OPPONENT[(x - 18) % 24])
-        write(car.PLAYER[x % 24])
-        write(car.PLAYER[(x - 6) % 24])
-        write(car.PLAYER[(x - 12) % 24])
-        write(car.PLAYER[(x - 18) % 24])
-        x += 1
+
+        write(car.OPPONENT[19])
+        write(car.OPPONENT[13])
+        write(car.OPPONENT[7])
+        write(car.OPPONENT[1])
+        write(car.PLAYER[19])
+        write(car.PLAYER[13])
+        write(car.PLAYER[7])
+        write(car.PLAYER[1])
+
+        #command(0b01000000)  # cgram address 0
+        #print(repr(read(3)))
+
+        command(0b10000000)
+        write(b'\x00\x01\x02\x03' * 5)
+        command(0b10000000 + 20)
+        write(b'\x04\x05\x06\x07' * 5)
+
+        x = 19
+        while True:
+            time.sleep(0.1)
+            command(0b01000000)  # cgram address 0
+            write(car.OPPONENT[x % 24])
+            write(car.OPPONENT[(x - 6) % 24])
+            write(car.OPPONENT[(x - 12) % 24])
+            write(car.OPPONENT[(x - 18) % 24])
+            write(car.PLAYER[x % 24])
+            write(car.PLAYER[(x - 6) % 24])
+            write(car.PLAYER[(x - 12) % 24])
+            write(car.PLAYER[(x - 18) % 24])
+            x += 1
 
 
-finally:
-    cleanup()
+    finally:
+        cleanup()
 

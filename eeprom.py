@@ -108,39 +108,40 @@ def unprotect():
     write1(0x5555, 0x20)
 
 
-init()
+if __name__ == '__main__':
+    init()
 
-if '-d' in sys.argv:
-    sys.stdout.buffer.write(read(0,EEPROM_SIZE))
-else:
-
-    if '-1' in sys.argv:
-        testdata = b'\xff' * EEPROM_SIZE
-        print('all 1s')
-    elif '-0' in sys.argv:
-        testdata = b'\x00' * EEPROM_SIZE
-        print('all 0s')
-    elif '-i' in sys.argv:
-        testdata = sys.stdin.buffer.read(EEPROM_SIZE)
+    if '-d' in sys.argv:
+        sys.stdout.buffer.write(read(0,EEPROM_SIZE))
     else:
-        seed = (sys.argv + [
-            str(int.from_bytes(os.urandom(3), byteorder='little'))
-        ])[1]
-        print('using seed: %r' % seed)
-        r = random.Random(seed)
-        testdata = bytes(r.getrandbits(8) for i in range(EEPROM_SIZE))
 
-    if '-u' in sys.argv:
-        unprotect()
+        if '-1' in sys.argv:
+            testdata = b'\xff' * EEPROM_SIZE
+            print('all 1s')
+        elif '-0' in sys.argv:
+            testdata = b'\x00' * EEPROM_SIZE
+            print('all 0s')
+        elif '-i' in sys.argv:
+            testdata = sys.stdin.buffer.read(EEPROM_SIZE)
+        else:
+            seed = (sys.argv + [
+                str(int.from_bytes(os.urandom(3), byteorder='little'))
+            ])[1]
+            print('using seed: %r' % seed)
+            r = random.Random(seed)
+            testdata = bytes(r.getrandbits(8) for i in range(EEPROM_SIZE))
 
-    write(0, testdata)
-    t = read(0, EEPROM_SIZE)
+        if '-u' in sys.argv:
+            unprotect()
 
-    if t == testdata:
-        print('test ok')
-    else:
-        print('test failed:', ','.join(
-            '%04x' % i for (i, (a, b)) in enumerate(zip(testdata, t)) if a != b)
-        )
+        write(0, testdata)
+        t = read(0, EEPROM_SIZE)
 
-cleanup()
+        if t == testdata:
+            print('test ok')
+        else:
+            print('test failed:', ','.join(
+                '%04x' % i for (i, (a, b)) in enumerate(zip(testdata, t)) if a != b)
+            )
+
+    cleanup()
