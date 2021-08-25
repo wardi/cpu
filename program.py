@@ -15,8 +15,8 @@ data = b''.join(
             '/usr/share/dict/words',
             'r',
             encoding='utf-8',
-        ).read(32767).encode('ascii', 'replace'),
+        ).read(32768).encode('ascii', 'replace'),
     ]
 )
 
-sys.stdout.buffer.write(data)
+sys.stdout.buffer.write(data[:32768])
