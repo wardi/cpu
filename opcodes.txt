@@ -1,60 +1,44 @@
 
 
-JMP
- - low, high (<2**15)
+0-7	[addr] +64 -> DDRAM	EEPROM	LCD	+64		set CGRAM address shortcuts
+8-127	[addr] -> DDRAM		EEPROM	LCD	RS		write ASCII shortcuts
+128-207	[addr] -> DDRAM		EEPROM	LCD			set DDRAM address shortcuts
+
+LDA								load immediate
+ (1)	[addr] -> A		EEPROM	A
+
+WRD	A -> DDRAM		A	LCD	RS		write A to DDRAM
+WRC	A -> command		A	LCD			write A as command
+RDD	DDRAM -> A,N,Z		LCD	A	RS RW NZ	read DDRAM to A, update N, Z flags
+RDS	status -> A,N,Z		LCD	A	   RW NZ	read status to A, update N, Z flags
+
+JMP								jump immediate
+ (2)	[addr] -> X		EEPROM	X
+ (3)	[addr]:X -> addr	EEPROM	ADDR
+
+RET	DDRAM -> X		LCD	X			jump indirect
+ (4)	DDRAM:X -> addr		LCD	ADDR
+
+ADD	A+DDRAM -> A,C,N,Z	LCD	ALU	ALUO NZ		add DDRAM
+SUB	A-DDRAM -> A,C,N,Z	LCD	ALU	ALUO NZ SUB	subtract DDRAM
+CMP	A-DDRAM -> C,N,Z	LCD	ALU	     NZ SUB	compare DDRAM
+
+NOP2								do nothing (skip next two bytes in EEPROM)
+NOP1,(5)							do nothing (skip next byte in EEPROM)
+ (6)								do nothing
+
+JN								jump if N = 1, state (2) else (5)
+JC								jump if C = 1, state (2) else (5)
+JZ								jump if Z = 1, state (2) else (5)
+
+INP	buttons -> A,N,Z	BUTTONS	A	NZ		read and clear button input register
+
+-----  wishlist (optional optimizations)
+
+JP								jump if N = 0, state (2) else (5)
+JNC								jump if C = 0, state (2) else (5)
+JNZ								jump if Z = 1, state (2) else (5)
+
+WRB
 
 
-ADC     S Z C
- - immed
- - ddram/cgram
-
-SBC	S Z C
- - immed
- - ddram/cgram
-
-BMI	(S)
- - offset
-BPL	(S)
- - offset
-
-BCS	(C)
- - offset
-BCC	(C)
- - offset
-
-BNE	(Z)
- - offset
-BEQ	(Z)
- - offset
-
-ROR	C
-ROL	C
-
-AND     S Z
- - immed
- - ddram/cgram
-BIT     S Z
- - immed
- - ddram/cgram
-
-
-DDR     set ddram address                    -  RS=0 RW=0 0b1xxxxxxx
- - A
- - immed
-
-CGR     set character generator ram address  -  RS=0 RW=0 0b01xxxxxx
-CSH     set cursor/shift display             -  RS=0 RW=0 0b0001sr--
-DSP     set display, cursor on/off and blink -  RS=0 RW=0 0b00001dcb
-DSH     set direction and shiftdisplay       -  RS=0 RW=0 0b000001is
-HOM     reset to home location               -  RS=0 RW=0 0b0000001-
-CLR     clear display                        -  RS=0 RW=0 0b00000001
-RBA     read busy flag and address           -  RS=0 RW=0
-
-LDA     read from ddram/cgram/immed          -  RS=1 RW=1
- - ddram/cgram
- - immed
-*(<0x80) write to ddram/cgram                -  RS=1 RW=0
-STA     write to ddram/cgram (>=0x80 ok)     -  RS=1 RW=0
-
-
-BTN     read buttons
