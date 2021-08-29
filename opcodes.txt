@@ -1,44 +1,101 @@
 
+microcode address bits	[s][s][s][s][k][k][k][k][k][k][k][k][c][n][z]
+s=current (state) 0 is normal/command state
+k=command [addr]
 
-0-7	[addr] +64 -> DDRAM	EEPROM	LCD	+64		set CGRAM address shortcuts
-8-127	[addr] -> DDRAM		EEPROM	LCD	RS		write ASCII shortcuts
-128-207	[addr] -> DDRAM		EEPROM	LCD			set DDRAM address shortcuts
+microcode data bits 1 	[s][s][s][s][i][i][rs][rw]
+microcode data bits 2   [o][o][o][o][aluout][sub][nz][+64]
+s=next (state) 0 is normal/command state
+i=bus input
+o=bus output
+-----
 
-LDA								load immediate
- (1)	[addr] -> A		EEPROM	A
 
-WRD	A -> DDRAM		A	LCD	RS		write A to DDRAM
-WRC	A -> command		A	LCD			write A as command
-RDD	DDRAM -> A,N,Z		LCD	A	RS RW NZ	read DDRAM to A, update N, Z flags
-RDS	status -> A,N,Z		LCD	A	   RW NZ	read status to A, update N, Z flags
+0-7		[addr] +64 -> DDRAM	EEPROM	LCD	+64		set CGRAM address shortcuts
+8-127		[addr] -> DDRAM		EEPROM	LCD	RS		write ASCII shortcuts
+128-207		[addr] -> DDRAM		EEPROM	LCD			set DDRAM address shortcuts
 
-JMP								jump immediate
- (2)	[addr] -> X		EEPROM	X
- (3)	[addr]:X -> addr	EEPROM	ADDR
+208	LDA #								load immediate
+ (1)		[addr] -> A		EEPROM	A
 
-RET	DDRAM -> X		LCD	X			jump indirect
+209	WRD	A -> DDRAM		A	LCD	RS		write A to DDRAM
+210	WRC	A -> command		A	LCD			write A as command
+211	RDD	DDRAM -> A,N,Z		LCD	A	RS RW NZ	read DDRAM to A, update N, Z flags
+212	RDS	status -> A,N,Z		LCD	A	   RW NZ	read status to A, update N, Z flags
+
+213	JMP ##								jump immediate
+ (2)		[addr] -> X		EEPROM	X
+ (3)		[addr]:X -> addr	EEPROM	ADDR
+214	RET	DDRAM -> X		LCD	X			jump indirect
  (4)	DDRAM:X -> addr		LCD	ADDR
 
-ADD	A+DDRAM -> A,C,N,Z	LCD	ALU	ALUO NZ		add DDRAM
-SUB	A-DDRAM -> A,C,N,Z	LCD	ALU	ALUO NZ SUB	subtract DDRAM
-CMP	A-DDRAM -> C,N,Z	LCD	ALU	     NZ SUB	compare DDRAM
+215	ADD	A+DDRAM -> A,C,N,Z	LCD	ALU	ALUO NZ		add DDRAM
+216	SUB	A-DDRAM -> A,C,N,Z	LCD	ALU	ALUO NZ SUB	subtract DDRAM
+217	CMP	A-DDRAM -> C,N,Z	LCD	ALU	     NZ SUB	compare DDRAM
 
-NOP2								do nothing (skip next two bytes in EEPROM)
-NOP1,(5)							do nothing (skip next byte in EEPROM)
- (6)								do nothing
+218	HOP1								skip next byte in EEPROM
+ (6)									do nothing
+219	HOP2								skip next word in EEPROM
+ (5)									do nothing
+ (6)									do nothing
 
-JN								jump if N = 1, state (2) else (5)
-JC								jump if C = 1, state (2) else (5)
-JZ								jump if Z = 1, state (2) else (5)
+220	JN ##								jump if N = 1, state (2) else (5)
+221	JC ##								jump if C = 1, state (2) else (5)
+222	JZ ##								jump if Z = 1, state (2) else (5)
 
-INP	buttons -> A,N,Z	BUTTONS	A	NZ		read and clear button input register
+223	INP	buttons -> A,N,Z	BUTTONS	A	NZ		read and clear button input register
 
------  wishlist (optional optimizations)
+-----  wishlist
 
-JP								jump if N = 0, state (2) else (5)
-JNC								jump if C = 0, state (2) else (5)
-JNZ								jump if Z = 1, state (2) else (5)
+224	JP ##								jump if N = 0, state (2) else (5)
+225	JNC ##								jump if C = 0, state (2) else (5)
+226	JNZ ##								jump if Z = 0, state (2) else (5)
 
-WRB
+227	WRB #								write byte immediate
+ (7)		[addr] -> DDRAM		EEPROM	LCD	RS
+228	WRW ##								write word immediate
+ (8)		[addr] -> DDRAM		EEPROM	LCD	RS
+ (7)		[addr] -> DDRAM		EEPROM	LCD	RS
 
+229	ADD #								add immediate
+ (9)		A+[addr] -> A,C,N,Z	EEPROM	ALU	ALUO NZ
+230	SUB #								subtract immediate
+ (10)		A-[addr] -> A,C,N,Z	LCD	ALU	ALUO NZ SUB
+240	CMP #								compare immediate
+ (11)		A-DDRAM -> C,N,Z	LCD	ALU	     NZ SUB
 
+241	WRBN #								write byte if N = 1, state(7) else (6)
+242	WRBC #								write byte if C = 1, state(7) else (6)
+243	WRBZ #
+244	WRBP #
+245	WRBNC #
+246	WRBNZ #
+
+247	CMPN #
+248	CMPC #
+249	CMPZ #
+250	CMPP #
+251	CMPNC #
+252	CMPNZ #
+
+-----  unassigned wishlist
+
+WRWN
+WRWC
+WRWZ
+WRWP
+WRWNC
+WRWNZ
+
+ADDN
+ADDC
+ADDZ
+ADDP
+ADDNC
+ADDNZ
+SUBN
+SUBC
+SUBZ
+SUBP
+SUBNC
+SUBNZ
