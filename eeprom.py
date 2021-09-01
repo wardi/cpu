@@ -42,7 +42,7 @@ class IO(IntEnum):
     IO0 = 16
     IO1 = 26
     IO2 = 20
-    IO3 = 9
+    IO3 = 21
     IO4 = 10
     IO5 = 24
     IO6 = 23
@@ -60,6 +60,7 @@ def cleanup():
 
 
 def write1(addr, data):
+    GPIO.output((Control.OE_, Control.CE_), 1)
     for i, p in enumerate(Address):
         GPIO.output(p, (addr >> i) & 1)
     for i, p in enumerate(IO):
@@ -69,7 +70,24 @@ def write1(addr, data):
     GPIO.output((Control.WE_, Control.CE_), 1)
     time.sleep(WRITE_SETTLE_DELAY)
 
+def write64(addr, data):
+    GPIO.output((Control.OE_, Control.CE_), 1)
+    for i, p in enumerate(Address):
+        GPIO.output(p, (addr >> i) & 1)
+    for d in data:
+        for i, p in enumerate(IO):
+            GPIO.output(p, (d >> i) & 1)
+        GPIO.output((Control.CE_, Control.WE_), 0)
+        time.sleep(WRITE_ENABLE_DELAY)
+        GPIO.output((Control.WE_, Control.CE_), 1)
+        time.sleep(WRITE_ENABLE_DELAY)
+    time.sleep(WRITE_SETTLE_DELAY)
+
 def write(addr, data):
+    #if addr & 0x1f == 0:
+    #    for i in range(0, len(data), 64):
+    #        write64(addr + i, data[i:i+64])
+    #    return
     for i, d in enumerate(data):
         write1(addr + i, d)
 
@@ -135,13 +153,21 @@ if __name__ == '__main__':
             unprotect()
 
         write(0, testdata)
-        t = read(0, EEPROM_SIZE)
+        t = read(0, len(testdata))
 
         if t == testdata:
             print('test ok')
         else:
-            print('test failed:', ','.join(
-                '%04x' % i for (i, (a, b)) in enumerate(zip(testdata, t)) if a != b)
+            errors = list(i for
+                (i, (a, b)) in enumerate(zip(testdata, t)) if a != b
+            )
+            error_text = ','.join('%04x' % i for i in errors)
+            if len(error_text) > 200:
+                error_text = error_text[:200] + '...'
+
+            print(
+                f'test failed with {len(errors)} error(s):',
+                error_text,
             )
 
     cleanup()
