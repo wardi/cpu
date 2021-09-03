@@ -117,6 +117,15 @@ def read(addr, n):
     return bytes(read1(addr + i) for i in range(n))
 
 
+def erase():
+    write1(0x5555, 0xaa)
+    write1(0x2aaa, 0x55)
+    write1(0x5555, 0x80)
+    write1(0x5555, 0xaa)
+    write1(0x2aaa, 0x55)
+    write1(0x5555, 0x10)
+
+
 def unprotect():
     write1(0x5555, 0xaa)
     write1(0x2aaa, 0x55)
@@ -131,6 +140,8 @@ if __name__ == '__main__':
 
     if '-d' in sys.argv:
         sys.stdout.buffer.write(read(0,EEPROM_SIZE))
+    elif '-e' in sys.argv:
+        erase()
     else:
 
         if '-1' in sys.argv:
