@@ -4,7 +4,7 @@ s=current (state) 0 is normal/command state
 k=command [addr]
 
 microcode data bits 1 	[s][s][s][s][i][i][rs][rw]
-microcode data bits 2   [o][o][o][o][aluout][sub][nz][+64]
+microcode data bits 2   [o][o][o][aluout][sub][nz][+64][ ]
 s=next (state) 0 is normal/command state
 i=bus input
 o=bus output
