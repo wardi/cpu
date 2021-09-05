@@ -2,6 +2,12 @@
 
 import sys
 
+words = open(
+    '/usr/share/dict/words',
+    'r',
+    encoding='utf-8',
+)
+
 data = b''.join(
     [
         bytes(
@@ -11,11 +17,10 @@ data = b''.join(
                 0b10000110, # Edit mode
             ]
         ),
-        open(
-            '/usr/share/dict/words',
-            'r',
-            encoding='utf-8',
-        ).read(32768).encode('ascii', 'replace'),
+        *(
+            w.strip().encode('ascii', 'replace') + b' '
+            for w in words if not w.endswith("'s\n")
+        ),
     ]
 )
 
