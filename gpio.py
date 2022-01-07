@@ -8,6 +8,8 @@ import os
 
 from RPi import GPIO
 
+import pattern
+
 # GPIO pins in order along connector
 PINS = [
     2,
@@ -15,8 +17,8 @@ PINS = [
     4,
     14,
     15,
-    17,
-    18,
+    18, # 17,
+    17, # 18,
     27,
     22,
     23,
@@ -30,8 +32,8 @@ PINS = [
     0,
     1,
     5,
-    6,
-    12,
+    12, # 6,
+    6,  # 12,
     13,
     19,
     16,
@@ -90,7 +92,15 @@ def read():
     for i, p in enumerate(PINS):
         print(i, ':', GPIO.input(p))
 
-
+@command
+def demo():    
+    while True:
+        for fn in pattern.PROGRAM:
+            for x in fn(len(PINS)):
+                GPIO.setup(PINS, GPIO.OUT)
+                GPIO.output(PINS, list(x))
+                time.sleep(0.05)
+        
 
 def main():
     init()

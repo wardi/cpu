@@ -70,15 +70,17 @@ LEDS = 28
 PROGRAM = (
     blink,
     blink,
+    blink,
     sweep,
     lambda n: (reversed(x) for x in sweep(n)),
     shadow,
     lambda n: (reversed(x) for x in shadow(n)),
     wave,
     lambda n: (reversed(x) for x in wave(n)),
-    ducklings,
     hazard,
+    lambda n: (reversed(x) for x in hazard(n)),
     static,
+    ducklings,
 )
 
 if __name__ == '__main__':
