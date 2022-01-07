@@ -28,6 +28,14 @@ def wave(n):
         ]
     yield [0] * n
 
+def hazard(n):
+    for j in range(1, 5):
+        yield [int(i % 8 < j) for i in range(n)]
+    for j in range(1, 25):
+        yield [int((i - j) % 8 < 4) for i in range(n)]
+    for j in range(4):
+        yield [int(j < i % 8 < 4) for i in range(n)]
+
 def ducklings(n, rand=RAND):
     # initial positions
     pos = list(range(0, int(-2 * n / 3), -3))
@@ -59,6 +67,7 @@ PROGRAM = (
     wave,
     lambda n: (reversed(x) for x in wave(n)),
     ducklings,
+    hazard,
 )
 
 if __name__ == '__main__':
