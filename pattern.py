@@ -36,6 +36,16 @@ def hazard(n):
     for j in range(4):
         yield [int(j < i % 8 < 4) for i in range(n)]
 
+def static(n, rand=RAND):
+    # fade in
+    for j in range(1, 6):
+        yield [int(rand.random() < j / 12) for i in range(n)]
+    for j in range(24):
+        yield [int(rand.random() < 0.5) for i in range(n)]
+    # fade out
+    for j in reversed(range(6)):
+        yield [int(rand.random() < j / 12) for i in range(n)]
+
 def ducklings(n, rand=RAND):
     # initial positions
     pos = list(range(0, int(-2 * n / 3), -3))
@@ -68,6 +78,7 @@ PROGRAM = (
     lambda n: (reversed(x) for x in wave(n)),
     ducklings,
     hazard,
+    static,
 )
 
 if __name__ == '__main__':
