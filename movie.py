@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from .constants import *
+from constants import *
 
 with open('movie.bin', 'wb') as f:
     f.write(
