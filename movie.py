@@ -16,7 +16,7 @@ cg3:10 off:00 12 13 14 15 16 17 d11:08 d27:09 c13:04 c53:06 e11:0c e27:0d c33:05
 cg4:10 hid:00 12 13 14 15 16 17 d12:08 d28:09 c14:04 c54:06 e12:0c e28:0d c34:05 c74:07
 cg5:10 bli:00 12 13 14 15 16 17 d13:08 d29:09 c15:04 c55:06 e13:0c e29:0d c35:05 c75:07
 cg6:10 cur:00 12 13 14 15 16 17 d14:08 d30:09 c16:04 c56:06 e14:0c e30:0d c36:05 c76:07
-cg7:10 slt:01 12 13 14 15 16 17 d15:08 d31:09 c17:04 c57:06 e15:0c e31:0d c37:05 c77:1f
+cg7:10 slt:01 12 13 14 15 16 17 d15:08 d31:09 c17:04 c57:06 e15:0c e31:0d c37:05 1f
 """
 
 rows = hex_map.strip().split('\n')
@@ -33,7 +33,7 @@ for col in columns:
     for cell in col:
         mnemonic, sep, code = cell.rpartition(':')
         if sep:
-           print(f'{mnemonic} = 0x{i:02x}')
+           print(rf'{mnemonic.upper()} = b"\x{i:02x}"')
         i += 1
 
 #with open('hexmap.bin', 'wb') as f:
