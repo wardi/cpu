@@ -1,4 +1,4 @@
-
+#!/usr/bin/env python3
 
 hex_map = """
 c00:04 c20:05 12 13 14 15 16 17 d00:08 d16:09 d32:0a c40:06 e00:0c e16:0d e32:0e c60:07
@@ -18,3 +18,22 @@ cg5:10 bli:00 12 13 14 15 16 17 d13:08 d29:09 c15:04 c55:06 e13:0c e29:0d c35:05
 cg6:10 cur:00 12 13 14 15 16 17 d14:08 d30:09 c16:04 c56:06 e14:0c e30:0d c36:05 c76:07
 cg7:10 slt:01 12 13 14 15 16 17 d15:08 d31:09 c17:04 c57:06 e15:0c e31:0d c37:05 c77:1f
 """
+
+rows = hex_map.strip().split('\n')
+assert len(rows) == 16, f'Expecting 16 rows, found {len(rows)}'
+
+for i, r in enumerate(rows):
+    cells = r.split()
+    assert len(cells) == 16, f'Row {i} should have 16 cells: {cells}'
+
+columns = zip(*(r.split() for r in rows))
+
+i = 0
+for col in columns:
+    for cell in col:
+        mnemonic, sep, code = cell.rpartition(':')
+        if sep:
+           print(f'{mnemonic} = 0x{i:02x}')
+        i += 1
+
+#with open('hexmap.bin', 'wb') as f:
