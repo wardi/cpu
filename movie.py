@@ -28,12 +28,9 @@ for i, r in enumerate(rows):
 
 columns = zip(*(r.split() for r in rows))
 
-i = 0
-for col in columns:
-    for cell in col:
+with open('hexmap.bin', 'wb') as f:
+    for i, cell in enumerate(cell for col in columns for cell in col):
         mnemonic, sep, code = cell.rpartition(':')
         if sep:
            print(rf'{mnemonic.upper()} = b"\x{i:02x}"')
-        i += 1
-
-#with open('hexmap.bin', 'wb') as f:
+        f.write(bytes([int(code, 16)]))
