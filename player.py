@@ -1,4 +1,9 @@
+#!/usr/bin/src python3
 
+SRC_FRAMES = 6586
+SRC_FPS = 30
+EEPROM_SIZE = 32768 - 5 # init
+BYTES_PER_FRAME = EEPROM_SIZE / SRC_FRAMES # 4.974 bytes/frame allowance
 
 order = """
 6sekbpi8
