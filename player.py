@@ -13,10 +13,12 @@ co5ft2la
 """
 
 # strategy:
-# choose the next cell that needs to be all 0s or all 1s next in order
+# if cursor already on cell that needs to be all 0s or all 1s
+# - (advance 1): ' ' or '\xff'
+# choose the next cell that needs to be all 0s or all 1s next in order (leftmost applicable)
 # - (advance 2): position, ' ' or '\xff'
 # if none choose the cell with delta > 2 next in order
-# - if assigned (advance 7):
+# - if assigned (advance 7):  * or update-in-place (advance <7)
 #     cgposition, 8 * bit pattern
 # - if unassigned, 1+ available (advance 9):
 #     cgposition, 8 * bit pattern, position, cgchar
