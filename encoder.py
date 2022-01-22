@@ -51,19 +51,45 @@ file_frame = 0
 
 frame_pixels = sys.stdin.buffer.read(COLS * ROWS * LINES)
 
-def draw(pixels):
-    #print('\x1b[H', end='')
+def intpixels(pixels):
+    "return [[0/1, ...],...] pixel values from top left to bottom right"
+    ipx = []
     for y in range(LINES * ROWS + ROWS - 1):
         if y % (LINES + 1) == LINES:
-            print('-' * (PIXELS * COLS + COLS - 1))
+            ipx.append([0] * (PIXELS * COLS + COLS - 1))
             continue
         cell_y = y // (LINES + 1)
         line = y % (LINES + 1)
-        print('-'.join(
-            '{:05b}'.format(pixels[cell_y * (LINES * COLS) + x * LINES + line])
-            .replace('0', ' ')
-            .replace('1', 'X')
-            for x in range(COLS)
-        ))
+        row = []
+        ipx.append([int(b) for b in
+            '0'.join(
+                '{:05b}'.format(pixels[
+                    cell_y * (LINES * COLS) + x * LINES + line
+                ])
+                for x in range(COLS)
+            )
+        ])
+    return ipx
 
-draw(frame_pixels)
+def braillepixels(ipx):
+    "return braille text version of intpixel matrix"
+    braille = []
+    # padded intpixel matrix to avoid IndexErrors
+    pipx = [r + [0] for r in ipx] + [[0] * (len(ipx[0]) + 1)] * 7
+    for y in range(0, len(ipx), 8):
+        braille.append(''.join(
+            chr(0x2800
+                + 1 * pipx[y][x]
+                + 2 * pipx[y + 1][x]
+                + 4 * pipx[y + 2][x]
+                + 8 * pipx[y][x + 1]
+                + 16 * pipx[y + 1][x + 1]
+                + 32 * pipx[y + 2][x + 1]
+                + 64 * pipx[y + 3][x]
+                + 128 * pipx[y + 3][x + 1]
+            ) for x in range(0, len(ipx[0]), 2)
+        ))
+    return braille
+
+for b in braillepixels(intpixels(frame_pixels)):
+    print('#', b)
