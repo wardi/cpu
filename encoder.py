@@ -91,5 +91,21 @@ def braillepixels(ipx):
         ))
     return braille
 
-for b in braillepixels(intpixels(frame_pixels)):
-    print('#', b)
+def pixeldelta(a, b):
+    return bin(
+        int.from_bytes(a, 'little') ^ int.from_bytes(b, 'little')
+    ).count('1')
+
+def print_state():
+    for t, d, i in zip(
+            braillepixels(intpixels(frame_pixels)),
+            braillepixels(intpixels(display_pixels)),
+            [
+                f'frame {file_frame}',
+                'delta {}'.format(
+                    pixeldelta(frame_pixels, display_pixels))
+            ] + ['', '', '']
+        ):
+        print('#', d, t, i)
+
+print_state()
