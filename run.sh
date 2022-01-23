@@ -1,1 +1,1 @@
-zcat bad-apple/badapple.bits.gz | ./encoder.py
+./encoder.py bad-apple/badapple.bits.gz

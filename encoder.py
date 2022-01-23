@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
 
+import sys
+import gzip
+from itertools import zip_longest, repeat
+
 SRC_FRAMES = 6586
 SRC_FPS = 30
 EEPROM_SIZE = 32768 - 5 # init
@@ -12,13 +16,6 @@ ROWS = 4
 
 ALL_0 = b'\x00' * 8
 ALL_1 = b'\x1f' * 8
-
-order = """
-6sekbpi8
-q91mw4ug
-j3hv7rdn
-co5ft2la
-"""
 
 # strategy:
 # if cursor already on cell that needs to be all 0s or all 1s
@@ -41,8 +38,14 @@ co5ft2la
 #     cgposition, 8 * bit pattern, position, cgchar
 # if none emit NOP (advance 1)
 
+order = """
+6sekbpi8
+q91mw4ug
+j3hv7rdn
+co5ft2la
+"""
 
-import sys
+
 w = sys.stdout.write
 
 w('CLR +\n')
@@ -53,8 +56,10 @@ bytes_sent = 0
 file_frame = 0
 frame_pixels = None
 
+input_file = gzip.open(sys.argv[1], 'rb')
+
 def read_frame():
-    return sys.stdin.buffer.read(COLS * ROWS * LINES)
+    return input_file.read(COLS * ROWS * LINES)
 
 def intpixels(pixels):
     "return [[0/1, ...],...] pixel values from top left to bottom right"
@@ -81,7 +86,7 @@ def braillepixels(ipx):
     braille = []
     # padded intpixel matrix to avoid IndexErrors
     pipx = [r + [0] for r in ipx] + [[0] * (len(ipx[0]) + 1)] * 7
-    for y in range(0, len(ipx), 8):
+    for y in range(0, len(ipx), 4):
         braille.append(''.join(
             chr(0x2800
                 + 1 * pipx[y][x]
@@ -102,16 +107,17 @@ def pixeldelta(a, b):
     ).count('1')
 
 def print_state():
-    for cols in zip(
+    for cols in zip_longest(
             braillepixels(intpixels(frame_pixels)),
-            ['|'] * 5,
+            [],
             braillepixels(intpixels(display_pixels)),
             [
                 f'frame {file_frame}',
                 f'position {pos}',
                 'delta {}'.format(
                     pixeldelta(frame_pixels, display_pixels))
-            ] + ['', '']
+            ],
+            fillvalue = '',
         ):
         print('#', *cols)
 
@@ -179,11 +185,18 @@ while True:
     if not frame_pixels:
         break
     while bytes_sent / EEPROM_SIZE < file_frame / SRC_FRAMES:
-        here = cell(pos, frame_pixels)
-        if here in (ALL_0, ALL_1) and here != cell(pos, display_pixels):
-            sim(b'\xff' if here == ALL_1 else b' ')
+# if cursor already on cell that needs to be all 0s or all 1s
+# - (advance 1): ' ' or '\xff'
+        try:
+            here = cell(pos, frame_pixels)
+        except IndexError:
+            pass
         else:
-            break
+            if here in (ALL_0, ALL_1) and here != cell(pos, display_pixels):
+                sim(b'\xff' if here == ALL_1 else b' ')
+                continue
+# choose the next cell that needs to be all 0s or all 1s next in order (leftmost applicable)
+        break
+
     print_state()
-    break
 
