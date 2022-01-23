@@ -10,6 +10,9 @@ LINES = 8  # vertical pixels per cgram character
 COLS = 8
 ROWS = 4
 
+ALL_0 = b'\x00' * 8
+ALL_1 = b'\x1f' * 8
+
 order = """
 6sekbpi8
 q91mw4ug
@@ -48,8 +51,10 @@ pos = 0   #  0-7 row 1,  10-17 row 2,  20-27 row 3,  30-37 row 4,  40+ cgram
 display_pixels = bytearray(COLS * ROWS * LINES)
 bytes_sent = 0
 file_frame = 0
+frame_pixels = None
 
-frame_pixels = sys.stdin.buffer.read(COLS * ROWS * LINES)
+def read_frame():
+    return sys.stdin.buffer.read(COLS * ROWS * LINES)
 
 def intpixels(pixels):
     "return [[0/1, ...],...] pixel values from top left to bottom right"
@@ -97,15 +102,88 @@ def pixeldelta(a, b):
     ).count('1')
 
 def print_state():
-    for t, d, i in zip(
+    for cols in zip(
             braillepixels(intpixels(frame_pixels)),
+            ['|'] * 5,
             braillepixels(intpixels(display_pixels)),
             [
                 f'frame {file_frame}',
+                f'position {pos}',
                 'delta {}'.format(
                     pixeldelta(frame_pixels, display_pixels))
-            ] + ['', '', '']
+            ] + ['', '']
         ):
-        print('#', d, t, i)
+        print('#', *cols)
 
-print_state()
+def cell(p, pixels, cgram=b''):
+    "Return 8 pixel-bytes at position p"
+    if p >= 40:
+        if p > 103:
+            raise IndexError()
+        return cgram[p - 40:][:8]
+    if p >= 30:
+        if p > 37:
+            raise IndexError()
+        return pixels[LINES * COLS * 3 + (p - 30) * LINES:][:8]
+    if p >= 20:
+        if p > 27:
+            raise IndexError()
+        return pixels[LINES * COLS * 2 + (p - 20) * LINES:][:8]
+    if p >= 10:
+        if p > 17:
+            raise IndexError()
+        return pixels[LINES * COLS * 1 + (p - 10) * LINES:][:8]
+    if p > 7:
+        raise IndexError()
+    return pixels[p * LINES:][:8]
+
+def writecell(pat, p, pixels):
+    "Set 8 pixel-bytes at position p to pat"
+    assert len(pat) == 8
+    if p >= 40:
+        if p > 103:
+            raise IndexError()
+        cgram[p - 40:p - 40 + 8] = pat
+        return
+    if p >= 30:
+        if p > 37:
+            raise IndexError()
+        off = LINES * COLS * 3 + (p - 30) * LINES
+    elif p >= 20:
+        if p > 27:
+            raise IndexError()
+        off = LINES * COLS * 2 + (p - 20) * LINES
+    elif p >= 10:
+        if p > 17:
+            raise IndexError()
+        off = LINES * COLS * 1 + (p - 10) * LINES
+    elif p > 7:
+        raise IndexError()
+    else:
+        off = p * LINES
+    pixels[off:off + 8] = pat
+
+def sim(b):
+    global pos, display_pixels, bytes_sent
+    w(f'{repr(b)} +\n')
+    if b == b'\xff':
+        writecell(ALL_1, pos, display_pixels)
+    elif b == b' ':
+        writecell(ALL_0, pos, display_pixels)
+    bytes_sent += 1
+    pos += 1
+
+while True:
+    frame_pixels = read_frame()
+    file_frame += 1
+    if not frame_pixels:
+        break
+    while bytes_sent / EEPROM_SIZE < file_frame / SRC_FRAMES:
+        here = cell(pos, frame_pixels)
+        if here in (ALL_0, ALL_1) and here != cell(pos, display_pixels):
+            sim(b'\xff' if here == ALL_1 else b' ')
+        else:
+            break
+    print_state()
+    break
+
