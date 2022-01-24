@@ -130,7 +130,7 @@ def print_state():
             ],
             fillvalue = '',
         ):
-        print('#', f, '│', d, i)
+        print('#', f, '»', d, i)
 
 def cell(p, pixels, cgram=b''):
     "Return 8 pixel-bytes at position p"
