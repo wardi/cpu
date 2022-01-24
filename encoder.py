@@ -2,7 +2,7 @@
 
 import sys
 import gzip
-from itertools import zip_longest, repeat
+from itertools import zip_longest, repeat, cycle, islice
 
 SRC_FRAMES = 6586
 SRC_FPS = 30
@@ -38,6 +38,8 @@ ALL_1 = b'\x1f' * 8
 #     cgposition, 8 * bit pattern, position, cgchar
 # if none emit NOP (advance 1)
 
+
+# 1-9, a-w order for display updates
 order = """
 6sekbpi8
 q91mw4ug
@@ -45,12 +47,22 @@ j3hv7rdn
 co5ft2la
 """
 
+# convert to a list of positions
+pos_order = [None] * (ROWS * COLS)
+for y, ln in enumerate(order.strip().split('\n')):
+    for x, ch in enumerate(ln):
+        pos = y * 10 + x
+        idx = ord(ch) - ord('1') if ch.isdigit() else ord(ch) - ord('a') + 9
+        pos_order[idx] = pos
+assert None not in pos_order
+
+pos_iter = cycle(pos_order)
 
 w = sys.stdout.write
 
 w('CLR +\n')
 
-pos = 0   #  0-7 row 1,  10-17 row 2,  20-27 row 3,  30-37 row 4,  40+ cgram
+display_pos = 0   #  0-7 row 1,  10-17 row 2,  20-27 row 3,  30-37 row 4,  40+ cgram
 display_pixels = bytearray(COLS * ROWS * LINES)
 bytes_sent = 0
 file_frame = 0
@@ -107,19 +119,18 @@ def pixeldelta(a, b):
     ).count('1')
 
 def print_state():
-    for cols in zip_longest(
+    for f, d, i in zip_longest(
             braillepixels(intpixels(frame_pixels)),
-            [],
             braillepixels(intpixels(display_pixels)),
             [
                 f'frame {file_frame}',
-                f'position {pos}',
+                f'position {display_pos}',
                 'delta {}'.format(
                     pixeldelta(frame_pixels, display_pixels))
             ],
             fillvalue = '',
         ):
-        print('#', *cols)
+        print('#', f, '│', d, i)
 
 def cell(p, pixels, cgram=b''):
     "Return 8 pixel-bytes at position p"
@@ -170,14 +181,44 @@ def writecell(pat, p, pixels):
     pixels[off:off + 8] = pat
 
 def sim(b):
-    global pos, display_pixels, bytes_sent
-    w(f'{repr(b)} +\n')
+    global display_pos, display_pixels, bytes_sent
+    if isinstance(b, bytes):  # literal byte
+        w(f'{repr(b)} +\n')
+    elif isinstance(b, str):  # mnemonic
+        w(f'{b} +\n')
+    elif isinstance(b, int):  # position (output mnemonic)
+        if b >= 40:
+            w(f'C{b - 40:02d} +\n')
+        elif b >= 30:
+            w(f'E{b - 30 + 10:02d} +\n')
+        elif b >= 20:
+            w(f'D{b - 20 + 10:02d} +\n')
+        elif b >= 10:
+            w(f'E{b - 10:02d} +\n')
+        else:
+            w(f'D{b:02d} +\n')
+        bytes_sent += 1
+        display_pos = b
+        return
+
     if b == b'\xff':
-        writecell(ALL_1, pos, display_pixels)
+        writecell(ALL_1, display_pos, display_pixels)
     elif b == b' ':
-        writecell(ALL_0, pos, display_pixels)
+        writecell(ALL_0, display_pos, display_pixels)
+
     bytes_sent += 1
-    pos += 1
+    display_pos += 1
+
+def mnemonic_position(p):
+    if p >= 40:
+        return f'C{p - 40:02d}'
+    if p >= 30:
+        return f'E{p - 30 + 10:02d}'
+    if p >= 20:
+        return f'D{p - 20 + 10:02d}'
+    if p >= 10:
+        return f'E{p - 10:02d}'
+    return f'D{p:02d}'
 
 while True:
     frame_pixels = read_frame()
@@ -188,14 +229,34 @@ while True:
 # if cursor already on cell that needs to be all 0s or all 1s
 # - (advance 1): ' ' or '\xff'
         try:
-            here = cell(pos, frame_pixels)
+            here = cell(display_pos, frame_pixels)
         except IndexError:
             pass
         else:
-            if here in (ALL_0, ALL_1) and here != cell(pos, display_pixels):
+            if here in (ALL_0, ALL_1) and here != cell(display_pos, display_pixels):
                 sim(b'\xff' if here == ALL_1 else b' ')
                 continue
 # choose the next cell that needs to be all 0s or all 1s next in order (leftmost applicable)
+        for pos in islice(pos_iter, COLS * ROWS):
+            here = cell(pos, frame_pixels)
+            if here in (ALL_0, ALL_1) and here != cell(pos, display_pixels):
+                # found one, now scan left
+                while True:
+                    p = pos - 1
+                    try:
+                        left = cell(p, frame_pixels)
+                    except IndexError:
+                        break
+                    if left not in (ALL_0, ALL_1) or left == cell(p, display_pixels):
+                        break
+                    pos = p
+                sim(mnemonic_position(pos))
+                break
+        else:
+            break
+            pos = None
+        continue
+
         break
 
     print_state()
