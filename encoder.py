@@ -244,7 +244,7 @@ while True:
                 sim(pos)
                 break
         else:
-            sim('SET')  # in place of "NOP"
+            sim('INI')  # stand-in for "NOP"
         continue
 
     print_state()
