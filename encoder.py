@@ -150,7 +150,7 @@ def cell(p, pixels, cgram=b''):
         if p > 17:
             raise IndexError()
         return pixels[LINES * COLS * 1 + (p - 10) * LINES:][:8]
-    if p > 7:
+    if p > 7 or p < 0:
         raise IndexError()
     return pixels[p * LINES:][:8]
 
@@ -184,8 +184,17 @@ def sim(b):
     global display_pos, display_pixels, bytes_sent
     if isinstance(b, bytes):  # literal byte
         w(f'{repr(b)} +\n')
+        if b == b'\xff':
+            writecell(ALL_1, display_pos, display_pixels)
+        elif b == b' ':
+            writecell(ALL_0, display_pos, display_pixels)
+        bytes_sent += 1
+        display_pos += 1
+
     elif isinstance(b, str):  # mnemonic
         w(f'{b} +\n')
+        bytes_sent += 1
+
     elif isinstance(b, int):  # position (output mnemonic)
         if b >= 40:
             w(f'C{b - 40:02d} +\n')
@@ -201,24 +210,6 @@ def sim(b):
         display_pos = b
         return
 
-    if b == b'\xff':
-        writecell(ALL_1, display_pos, display_pixels)
-    elif b == b' ':
-        writecell(ALL_0, display_pos, display_pixels)
-
-    bytes_sent += 1
-    display_pos += 1
-
-def mnemonic_position(p):
-    if p >= 40:
-        return f'C{p - 40:02d}'
-    if p >= 30:
-        return f'E{p - 30 + 10:02d}'
-    if p >= 20:
-        return f'D{p - 20 + 10:02d}'
-    if p >= 10:
-        return f'E{p - 10:02d}'
-    return f'D{p:02d}'
 
 while True:
     frame_pixels = read_frame()
@@ -250,14 +241,11 @@ while True:
                     if left not in (ALL_0, ALL_1) or left == cell(p, display_pixels):
                         break
                     pos = p
-                sim(mnemonic_position(pos))
+                sim(pos)
                 break
         else:
-            break
-            pos = None
+            sim('SET')  # in place of "NOP"
         continue
-
-        break
 
     print_state()
 
