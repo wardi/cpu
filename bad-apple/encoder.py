@@ -210,13 +210,9 @@ def sim(b):
         display_pos = b
         return
 
-
-while True:
-    frame_pixels = read_frame()
-    file_frame += 1
-    if not frame_pixels:
-        break
-    while bytes_sent / EEPROM_SIZE < file_frame / SRC_FRAMES:
+def encode():
+    "yield values to simulate/output"
+    while True:
 # if cursor already on cell that needs to be all 0s or all 1s
 # - (advance 1): ' ' or '\xff'
         try:
@@ -225,7 +221,7 @@ while True:
             pass
         else:
             if here in (ALL_0, ALL_1) and here != cell(display_pos, display_pixels):
-                sim(b'\xff' if here == ALL_1 else b' ')
+                yield b'\xff' if here == ALL_1 else b' '
                 continue
 # choose the next cell that needs to be all 0s or all 1s next in order (leftmost applicable)
         for pos in islice(pos_iter, COLS * ROWS):
@@ -241,11 +237,21 @@ while True:
                     if left not in (ALL_0, ALL_1) or left == cell(p, display_pixels):
                         break
                     pos = p
-                sim(pos)
+                yield pos
                 break
         else:
-            sim('INI')  # stand-in for "NOP"
-        continue
+            yield 'INI'  # stand-in for "NOP"
+
+
+encoder = encode()
+
+while True:
+    frame_pixels = read_frame()
+    file_frame += 1
+    if not frame_pixels:
+        break
+    while bytes_sent / EEPROM_SIZE < file_frame / SRC_FRAMES:
+        sim(next(encoder))
 
     print_state()
 
