@@ -13,31 +13,10 @@ PIXELS = 5  # horizontal pixels per cgram character
 LINES = 8  # vertical pixels per cgram character
 COLS = 8
 ROWS = 4
+CGRAM = 8
 
 ALL_0 = b'\x00' * 8
 ALL_1 = b'\x1f' * 8
-
-# strategy:
-# if cursor already on cell that needs to be all 0s or all 1s
-# - (advance 1): ' ' or '\xff'
-# choose the next cell that needs to be all 0s or all 1s next in order (leftmost applicable)
-# - (advance 2): position, ' ' or '\xff'
-# if none choose the cell with delta > 2 next in order
-# - if assigned (advance 7):  * or update-in-place (advance <7)
-#     cgposition, 8 * bit pattern
-# - if unassigned, 1+ available (advance 9):
-#     cgposition, 8 * bit pattern, position, cgchar
-# - else (advance 11):
-#     reorder oldest assigned to last
-#     position of oldest assigned, ' ' or '\xff'
-#     cgposition, 8 * bit pattern, position, cgchar
-# if none choose the cell delta > 0 next in order
-# - if assigned (advance 7):
-#     cgposition, 8 * bit pattern
-# - if unassigned, 1+ available (advance 9):
-#     cgposition, 8 * bit pattern, position, cgchar
-# if none emit NOP (advance 1)
-
 
 # 1-9, a-w order for display updates
 order = """
@@ -64,6 +43,8 @@ w('CLR +\n')
 
 display_pos = 0   #  0-7 row 1,  10-17 row 2,  20-27 row 3,  30-37 row 4,  40+ cgram
 display_pixels = bytearray(COLS * ROWS * LINES)
+cg_pixels = bytearray([0x80] * CGRAM * LINES)  # 0x80 to force replacement of data
+cg_assign = {}  # position where cgram character appears -> cgram number, ordered
 bytes_sent = 0
 file_frame = 0
 frame_pixels = None
@@ -157,11 +138,6 @@ def cell(p, pixels, cgram=b''):
 def writecell(pat, p, pixels):
     "Set 8 pixel-bytes at position p to pat"
     assert len(pat) == 8
-    if p >= 40:
-        if p > 103:
-            raise IndexError()
-        cgram[p - 40:p - 40 + 8] = pat
-        return
     if p >= 30:
         if p > 37:
             raise IndexError()
@@ -178,7 +154,7 @@ def writecell(pat, p, pixels):
         raise IndexError()
     else:
         off = p * LINES
-    pixels[off:off + 8] = pat
+    pixels[off:off + 8] = (b & 0x1f for b in pat)
 
 def sim(b):
     global display_pos, display_pixels, bytes_sent
@@ -188,12 +164,24 @@ def sim(b):
             writecell(ALL_1, display_pos, display_pixels)
         elif b == b' ':
             writecell(ALL_0, display_pos, display_pixels)
+        elif display_pos >= 40:
+            cg_pixels[display_pos - 40] = ord(b)
+            n = (display_pos - 40) // LINES
+            for k, v in cg_assign.items():
+                if v == n:
+                    writecell(cg_pixels[n * LINES:][:LINES], k, display_pixels)
+                    break
         bytes_sent += 1
         display_pos += 1
 
     elif isinstance(b, str):  # mnemonic
         w(f'{b} +\n')
         bytes_sent += 1
+
+        if b.startswith('CG'):
+            n = int(b[2:])
+            writecell(cg_pixels[n * LINES:][:LINES], display_pos, display_pixels)
+            display_pos += 1
 
     elif isinstance(b, int):  # position (output mnemonic)
         if b >= 40:
@@ -213,6 +201,7 @@ def sim(b):
 def encode():
     "yield values to simulate/output"
     while True:
+
 # if cursor already on cell that needs to be all 0s or all 1s
 # - (advance 1): ' ' or '\xff'
         try:
@@ -223,24 +212,93 @@ def encode():
             if here in (ALL_0, ALL_1) and here != cell(display_pos, display_pixels):
                 yield b'\xff' if here == ALL_1 else b' '
                 continue
+
 # choose the next cell that needs to be all 0s or all 1s next in order (leftmost applicable)
+# - (advance 2): position, ' ' or '\xff'
         for pos in islice(pos_iter, COLS * ROWS):
             here = cell(pos, frame_pixels)
             if here in (ALL_0, ALL_1) and here != cell(pos, display_pixels):
-                # found one, now scan left
-                while True:
-                    p = pos - 1
-                    try:
-                        left = cell(p, frame_pixels)
-                    except IndexError:
-                        break
-                    if left not in (ALL_0, ALL_1) or left == cell(p, display_pixels):
-                        break
-                    pos = p
-                yield pos
                 break
         else:
-            yield 'INI'  # stand-in for "NOP"
+            pos = None
+        if pos is not None:
+            # found one, now scan left
+            while True:
+                p = pos - 1
+                try:
+                    left = cell(p, frame_pixels)
+                except IndexError:
+                    break
+                if left not in (ALL_0, ALL_1) or left == cell(p, display_pixels):
+                    break
+                pos = p
+            yield pos
+            continue
+
+# if none choose the cell with delta > 2 next in order
+        for pos in islice(pos_iter, COLS * ROWS):
+            here = cell(pos, frame_pixels)
+            if pixeldelta(here, cell(pos, display_pixels)) > 2:
+                break
+        else:
+            pos = None
+        if pos is not None:
+
+# - if assigned (advance 7):  * or update-in-place (advance <7)
+#     cgposition, 8 * bit pattern
+            if pos in cg_assign:
+                reorder = cg_assign.pop(pos)
+                cg_assign[pos] = reorder  # move to last
+                yield reorder + 40
+                # fixme lookahead?
+                # fixme update-in-place?
+                for ln in cell(pos, frame_pixels):
+                    yield bytes([0x40 + ln])
+                continue
+
+# - if unassigned, 1+ available (advance 9):
+#     cgposition, 8 * bit pattern, position, cgchar
+            if len(cg_assign) < CGRAM:
+                # fixme choose best match from avail
+                avail = next(x for x in range(CGRAM) if x not in cg_assign.values())
+                yield avail * LINES + 40
+                # fixme lookahead?
+                # fixme update-in-place?
+                for ln in cell(pos, frame_pixels):
+                    yield bytes([0x40 + ln])
+                yield pos
+                yield f'CG{avail}'
+                cg_assign[pos] = avail
+
+# - else (advance 13):
+#     reorder oldest assigned to last
+#     position of oldest assigned, ' ' or '\xff'
+#     cgposition, 8 * bit pattern, position, cgchar
+            else:
+                oldest, oldpos = next(iter(cg_assign.items()))
+                cg_assign.pop(oldest)
+                yield oldpos
+                yield b'\xff' if pixeldelta(
+                    cell(oldpos, frame_pixels), ALL_0) > 20 else b' '
+                yield oldest * LINES + 40
+                # fixme lookahead?
+                # fixme update-in-place?
+                for ln in cell(pos, frame_pixels):
+                    yield bytes([0x40 + ln])
+                yield pos
+                yield f'CG{oldest}'
+                cg_assign[pos] = oldest
+
+            continue
+
+# if none choose the cell delta > 0 next in order
+# - if assigned (advance 7):
+#     cgposition, 8 * bit pattern
+# - if unassigned, 1+ available (advance 9):
+#     cgposition, 8 * bit pattern, position, cgchar
+
+# if none emit NOP (advance 1)
+        yield 'INI'  # stand-in for "NOP"
 
 
 encoder = encode()
