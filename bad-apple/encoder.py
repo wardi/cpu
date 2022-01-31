@@ -199,7 +199,6 @@ def sim(b):
         return
 
 def encode():
-    "yield values to simulate/output"
     while True:
 
 # if cursor already on cell that needs to be all 0s or all 1s
@@ -210,7 +209,7 @@ def encode():
             pass
         else:
             if here in (ALL_0, ALL_1) and here != cell(display_pos, display_pixels):
-                yield b'\xff' if here == ALL_1 else b' '
+                yield sim(b'\xff' if here == ALL_1 else b' ')
                 continue
 
 # choose the next cell that needs to be all 0s or all 1s next in order (leftmost applicable)
@@ -232,7 +231,7 @@ def encode():
                 if left not in (ALL_0, ALL_1) or left == cell(p, display_pixels):
                     break
                 pos = p
-            yield pos
+            yield sim(pos)
             continue
 
 # if none choose the cell with delta > 2 next in order
@@ -249,11 +248,11 @@ def encode():
             if pos in cg_assign:
                 reorder = cg_assign.pop(pos)
                 cg_assign[pos] = reorder  # move to last
-                yield reorder + 40
+                yield sim(reorder + 40)
                 # fixme lookahead?
                 # fixme update-in-place?
                 for ln in cell(pos, frame_pixels):
-                    yield bytes([0x40 + ln])
+                    yield sim(bytes([0x40 + ln]))
                 continue
 
 # - if unassigned, 1+ available (advance 9):
@@ -261,13 +260,13 @@ def encode():
             if len(cg_assign) < CGRAM:
                 # fixme choose best match from avail
                 avail = next(x for x in range(CGRAM) if x not in cg_assign.values())
-                yield avail * LINES + 40
+                yield sim(avail * LINES + 40)
                 # fixme lookahead?
                 # fixme update-in-place?
                 for ln in cell(pos, frame_pixels):
-                    yield bytes([0x40 + ln])
-                yield pos
-                yield f'CG{avail}'
+                    yield sim(bytes([0x40 + ln]))
+                yield sim(pos)
+                yield sim(f'CG{avail}')
                 cg_assign[pos] = avail
 
 # - else (advance 13):
@@ -275,18 +274,20 @@ def encode():
 #     position of oldest assigned, ' ' or '\xff'
 #     cgposition, 8 * bit pattern, position, cgchar
             else:
-                oldest, oldpos = next(iter(cg_assign.items()))
-                cg_assign.pop(oldest)
-                yield oldpos
-                yield b'\xff' if pixeldelta(
-                    cell(oldpos, frame_pixels), ALL_0) > 20 else b' '
-                yield oldest * LINES + 40
+                oldpos, oldest = next(iter(cg_assign.items()))
+                cg_assign.pop(oldpos)
+                yield sim(oldpos)
+                yield sim(
+                    b'\xff' if pixeldelta(
+                        cell(oldpos, frame_pixels), ALL_0) > 20 else b' '
+                )
+                yield sim(oldest * LINES + 40)
                 # fixme lookahead?
                 # fixme update-in-place?
                 for ln in cell(pos, frame_pixels):
-                    yield bytes([0x40 + ln])
-                yield pos
-                yield f'CG{oldest}'
+                    yield sim(bytes([0x40 + ln]))
+                yield sim(pos)
+                yield sim(f'CG{oldest}')
                 cg_assign[pos] = oldest
 
             continue
@@ -298,7 +299,7 @@ def encode():
 #     cgposition, 8 * bit pattern, position, cgchar
 
 # if none emit NOP (advance 1)
-        yield 'INI'  # stand-in for "NOP"
+        yield sim('INI')  # stand-in for "NOP"
 
 
 encoder = encode()
@@ -309,7 +310,7 @@ while True:
     if not frame_pixels:
         break
     while bytes_sent / EEPROM_SIZE < file_frame / SRC_FRAMES:
-        sim(next(encoder))
+        next(encoder)
 
     print_state()
 
