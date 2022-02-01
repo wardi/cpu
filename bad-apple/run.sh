@@ -1,1 +1,1 @@
-./encoder.py badapple.bits.gz
+./encoder.py badapple.bits.gz | batcat

@@ -187,16 +187,16 @@ def sim(b):
         if b >= 40:
             w(f'C{b - 40:02d} +\n')
         elif b >= 30:
-            w(f'E{b - 30 + 10:02d} +\n')
+            w(f'E{b - 30 + 20:02d} +\n')
         elif b >= 20:
-            w(f'D{b - 20 + 10:02d} +\n')
+            w(f'D{b - 20 + 20:02d} +\n')
         elif b >= 10:
             w(f'E{b - 10:02d} +\n')
         else:
             w(f'D{b:02d} +\n')
         bytes_sent += 1
         display_pos = b
-        return
+
 
 def encode():
     while True:
