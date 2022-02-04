@@ -4,10 +4,9 @@ import sys
 import gzip
 from itertools import zip_longest, repeat, cycle, islice
 
-SRC_FRAMES = 6586
 SRC_FPS = 30
 EEPROM_SIZE = 32768 - 5 # init
-BYTES_PER_FRAME = EEPROM_SIZE / SRC_FRAMES # 4.974 bytes/frame allowance
+NUM_LOOKAHEAD_FRAMES = 5
 
 PIXELS = 5  # horizontal pixels per cgram character
 LINES = 8  # vertical pixels per cgram character
@@ -156,10 +155,11 @@ def writecell(pat, p, pixels):
         off = p * LINES
     pixels[off:off + 8] = (b & 0x1f for b in pat)
 
-def sim(b):
+def sim(b, comment=None):
     global display_pos, display_pixels, bytes_sent
+    end = f' # {comment}\n' if comment else '\n'
     if isinstance(b, bytes):  # literal byte
-        w(f'{repr(b)} +\n')
+        w(f'{repr(b)} +{end}')
         if b == b'\xff':
             writecell(ALL_1, display_pos, display_pixels)
         elif b == b' ':
@@ -175,7 +175,7 @@ def sim(b):
         display_pos += 1
 
     elif isinstance(b, str):  # mnemonic
-        w(f'{b} +\n')
+        w(f'{b} +{end}')
         bytes_sent += 1
 
         if b.startswith('CG'):
@@ -185,15 +185,15 @@ def sim(b):
 
     elif isinstance(b, int):  # position (output mnemonic)
         if b >= 40:
-            w(f'C{b - 40:02d} +\n')
+            w(f'C{b - 40:02d} +{end}')
         elif b >= 30:
-            w(f'E{b - 30 + 20:02d} +\n')
+            w(f'E{b - 30 + 20:02d} +{end}')
         elif b >= 20:
-            w(f'D{b - 20 + 20:02d} +\n')
+            w(f'D{b - 20 + 20:02d} +{end}')
         elif b >= 10:
-            w(f'E{b - 10:02d} +\n')
+            w(f'E{b - 10:02d} +{end}')
         else:
-            w(f'D{b:02d} +\n')
+            w(f'D{b:02d} +{end}')
         bytes_sent += 1
         display_pos = b
 
@@ -302,15 +302,23 @@ def encode():
         yield sim('INI')  # stand-in for "NOP"
 
 
+def frame_at_bytes(bsent):
+    return num_src_frames * bytes_sent // EEPROM_SIZE
+
 encoder = encode()
 
+all_frames = []
 while True:
     frame_pixels = read_frame()
-    file_frame += 1
     if not frame_pixels:
         break
-    while bytes_sent / EEPROM_SIZE < file_frame / SRC_FRAMES:
-        next(encoder)
+    all_frames.append(frame_pixels)
+num_src_frames = len(all_frames)
+all_frames.extend([frame_pixels] * NUM_LOOKAHEAD_FRAMES)
 
-    print_state()
-
+while file_frame < num_src_frames:
+    frame_pixels = all_frames[file_frame]
+    next(encoder)
+    if frame_at_bytes(bytes_sent) > file_frame:
+        print_state()
+        file_frame = frame_at_bytes(bytes_sent)
