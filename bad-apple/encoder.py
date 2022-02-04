@@ -7,6 +7,7 @@ from itertools import zip_longest, repeat, cycle, islice
 SRC_FPS = 30
 EEPROM_SIZE = 32768 - 5 # init
 NUM_LOOKAHEAD_FRAMES = 5
+CLOSE_ENOUGH_PIXELS = 4
 
 PIXELS = 5  # horizontal pixels per cgram character
 LINES = 8  # vertical pixels per cgram character
@@ -97,6 +98,13 @@ def pixeldelta(a, b):
     return bin(
         int.from_bytes(a, 'little') ^ int.from_bytes(b, 'little')
     ).count('1')
+
+def solid(a):
+    n = bin(int.from_bytes(a, 'little')).count('1')
+    if n <= CLOSE_ENOUGH_PIXELS:
+        return b' '
+    if n >= PIXELS * LINES - CLOSE_ENOUGH_PIXELS:
+        return b'\xff'
 
 def print_state():
     for f, d, i in zip_longest(
@@ -208,15 +216,18 @@ def encode():
         except IndexError:
             pass
         else:
-            if here in (ALL_0, ALL_1) and here != cell(display_pos, display_pixels):
-                yield sim(b'\xff' if here == ALL_1 else b' ')
+            if solid(here) and here != cell(display_pos, display_pixels):
+                if display_pos in cg_assign:
+                    yield sim(solid(here), 'free '.format(cg_assign.pop(display_pos)))
+                else:
+                    yield sim(solid(here))
                 continue
 
 # choose the next cell that needs to be all 0s or all 1s next in order (leftmost applicable)
 # - (advance 2): position, ' ' or '\xff'
         for pos in islice(pos_iter, COLS * ROWS):
             here = cell(pos, frame_pixels)
-            if here in (ALL_0, ALL_1) and here != cell(pos, display_pixels):
+            if solid(here) and here != cell(pos, display_pixels):
                 break
         else:
             pos = None
@@ -228,70 +239,25 @@ def encode():
                     left = cell(p, frame_pixels)
                 except IndexError:
                     break
-                if left not in (ALL_0, ALL_1) or left == cell(p, display_pixels):
+                if not solid(left) or left == cell(p, display_pixels):
                     break
                 pos = p
             yield sim(pos)
             continue
 
-# if none choose the cell with delta > 2 next in order
+# if none choose the cell with >delta next in order
+        future = frame_at_bytes(bytes_sent + 10) # estimate of update cost
+        future_pixels = all_frames[future]
         for pos in islice(pos_iter, COLS * ROWS):
             here = cell(pos, frame_pixels)
-            if pixeldelta(here, cell(pos, display_pixels)) > 2:
-                break
+            if pixeldelta(here, cell(pos, future_pixels)) > CLOSE_ENOUGH_PIXELS:
+                # check that this cell doesn't go solid very soon afterwards
+                if not any(
+                        solid(cell(pos, all_frames[f]))
+                        for f in range(future, future + NUM_LOOKAHEAD_FRAMES)
+                    ):
+                    break
         else:
-            pos = None
-        if pos is not None:
-
-# - if assigned (advance 7):  * or update-in-place (advance <7)
-#     cgposition, 8 * bit pattern
-            if pos in cg_assign:
-                reorder = cg_assign.pop(pos)
-                cg_assign[pos] = reorder  # move to last
-                yield sim(reorder + 40)
-                # fixme lookahead?
-                # fixme update-in-place?
-                for ln in cell(pos, frame_pixels):
-                    yield sim(bytes([0x40 + ln]))
-                continue
-
-# - if unassigned, 1+ available (advance 9):
-#     cgposition, 8 * bit pattern, position, cgchar
-            if len(cg_assign) < CGRAM:
-                # fixme choose best match from avail
-                avail = next(x for x in range(CGRAM) if x not in cg_assign.values())
-                yield sim(avail * LINES + 40)
-                # fixme lookahead?
-                # fixme update-in-place?
-                for ln in cell(pos, frame_pixels):
-                    yield sim(bytes([0x40 + ln]))
-                yield sim(pos)
-                yield sim(f'CG{avail}')
-                cg_assign[pos] = avail
-
-# - else (advance 13):
-#     reorder oldest assigned to last
-#     position of oldest assigned, ' ' or '\xff'
-#     cgposition, 8 * bit pattern, position, cgchar
-            else:
-                oldpos, oldest = next(iter(cg_assign.items()))
-                cg_assign.pop(oldpos)
-                yield sim(oldpos)
-                yield sim(
-                    b'\xff' if pixeldelta(
-                        cell(oldpos, frame_pixels), ALL_0) > 20 else b' '
-                )
-                yield sim(oldest * LINES + 40)
-                # fixme lookahead?
-                # fixme update-in-place?
-                for ln in cell(pos, frame_pixels):
-                    yield sim(bytes([0x40 + ln]))
-                yield sim(pos)
-                yield sim(f'CG{oldest}')
-                cg_assign[pos] = oldest
-
-            continue
-
 # if none choose the cell delta > 0 next in order
 # - if assigned (advance 7):
 #     cgposition, 8 * bit pattern
@@ -299,7 +265,55 @@ def encode():
 #     cgposition, 8 * bit pattern, position, cgchar
 
 # if none emit NOP (advance 1)
-        yield sim('INI')  # stand-in for "NOP"
+            yield sim('INI')  # stand-in for "NOP"
+            continue
+
+# - if assigned (advance 7):  * or update-in-place (advance <7)
+#     cgposition, 8 * bit pattern
+        if pos in cg_assign:
+            reorder = cg_assign.pop(pos)
+            cg_assign[pos] = reorder  # move to last
+            yield sim(reorder + 40, f'update assigned {reorder}')
+            # fixme update-in-place?
+            for ln in cell(pos, future_pixels):
+                yield sim(bytes([0x40 + ln]))
+            continue
+
+# - if unassigned, 1+ available (advance 9):
+#     cgposition, 8 * bit pattern, position, cgchar
+        if len(cg_assign) < CGRAM:
+            # fixme choose best match from avail
+            avail = next(x for x in range(CGRAM) if x not in cg_assign.values())
+            yield sim(avail * LINES + 40, f'assign {avail}')
+            # fixme update-in-place?
+            for ln in cell(pos, future_pixels):
+                yield sim(bytes([0x40 + ln]))
+            yield sim(pos)
+            yield sim(f'CG{avail}')
+            cg_assign[pos] = avail
+
+# - else (advance 13):
+#     reorder oldest assigned to last
+#     position of oldest assigned, ' ' or '\xff'
+#     cgposition, 8 * bit pattern, position, cgchar
+        else:
+            oldpos, oldest = next(iter(cg_assign.items()))
+            cg_assign.pop(oldpos)
+            yield sim(oldpos, f'evict {oldest} at {oldpos}')
+            yield sim(
+                b'\xff' if pixeldelta(
+                    cell(oldpos, future_pixels), ALL_0) > 20 else b' '
+            )
+            yield sim(oldest * LINES + 40, f'reassign {oldest}')
+            # fixme lookahead?
+            # fixme update-in-place?
+            for ln in cell(pos, future_pixels):
+                yield sim(bytes([0x40 + ln]))
+            yield sim(pos)
+            yield sim(f'CG{oldest}')
+            cg_assign[pos] = oldest
+
+
 
 
 def frame_at_bytes(bsent):
