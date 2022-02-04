@@ -6,7 +6,7 @@ from itertools import zip_longest, repeat, cycle, islice
 
 SRC_FPS = 30
 EEPROM_SIZE = 32768 - 5 # init
-NUM_LOOKAHEAD_FRAMES = 5
+NUM_LOOKAHEAD_FRAMES = 3
 CLOSE_ENOUGH_PIXELS = 4
 
 PIXELS = 5  # horizontal pixels per cgram character
@@ -216,7 +216,7 @@ def encode():
         except IndexError:
             pass
         else:
-            if solid(here) and here != cell(display_pos, display_pixels):
+            if solid(here) and solid(here) != solid(cell(display_pos, display_pixels)):
                 if display_pos in cg_assign:
                     yield sim(solid(here), 'free '.format(cg_assign.pop(display_pos)))
                 else:
@@ -227,7 +227,7 @@ def encode():
 # - (advance 2): position, ' ' or '\xff'
         for pos in islice(pos_iter, COLS * ROWS):
             here = cell(pos, frame_pixels)
-            if solid(here) and here != cell(pos, display_pixels):
+            if solid(here) and solid(here) != solid(cell(pos, display_pixels)):
                 break
         else:
             pos = None
@@ -249,12 +249,12 @@ def encode():
         future = frame_at_bytes(bytes_sent + 10) # estimate of update cost
         future_pixels = all_frames[future]
         for pos in islice(pos_iter, COLS * ROWS):
-            here = cell(pos, frame_pixels)
-            if pixeldelta(here, cell(pos, future_pixels)) > CLOSE_ENOUGH_PIXELS:
+            here = cell(pos, future_pixels)
+            if pixeldelta(here, cell(pos, display_pixels)) > CLOSE_ENOUGH_PIXELS:
                 # check that this cell doesn't go solid very soon afterwards
                 if not any(
                         solid(cell(pos, all_frames[f]))
-                        for f in range(future, future + NUM_LOOKAHEAD_FRAMES)
+                        for f in range(future + 1, future + 1 + NUM_LOOKAHEAD_FRAMES)
                     ):
                     break
         else:
