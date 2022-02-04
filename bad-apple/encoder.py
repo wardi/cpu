@@ -114,7 +114,8 @@ def print_state():
                 f'frame {file_frame}',
                 f'position {display_pos}',
                 'delta {}'.format(
-                    pixeldelta(frame_pixels, display_pixels))
+                    pixeldelta(frame_pixels, display_pixels)),
+                f'{cg_assign}',
             ],
             fillvalue = '',
         ):
@@ -218,7 +219,8 @@ def encode():
         else:
             if solid(here) and solid(here) != solid(cell(display_pos, display_pixels)):
                 if display_pos in cg_assign:
-                    yield sim(solid(here), 'free '.format(cg_assign.pop(display_pos)))
+                    freed = cg_assign.pop(display_pos)
+                    yield sim(solid(here), f'free {freed} at {display_pos}')
                 else:
                     yield sim(solid(here))
                 continue
@@ -273,7 +275,7 @@ def encode():
         if pos in cg_assign:
             reorder = cg_assign.pop(pos)
             cg_assign[pos] = reorder  # move to last
-            yield sim(reorder + 40, f'update assigned {reorder}')
+            yield sim(reorder + 40, f'update assigned {reorder} at {pos}')
             # fixme update-in-place?
             for ln in cell(pos, future_pixels):
                 yield sim(bytes([0x40 + ln]))
@@ -284,13 +286,13 @@ def encode():
         if len(cg_assign) < CGRAM:
             # fixme choose best match from avail
             avail = next(x for x in range(CGRAM) if x not in cg_assign.values())
-            yield sim(avail * LINES + 40, f'assign {avail}')
+            yield sim(avail * LINES + 40, f'assign {avail} to {pos}')
             # fixme update-in-place?
             for ln in cell(pos, future_pixels):
                 yield sim(bytes([0x40 + ln]))
             yield sim(pos)
-            yield sim(f'CG{avail}')
             cg_assign[pos] = avail
+            yield sim(f'CG{avail}')
 
 # - else (advance 13):
 #     reorder oldest assigned to last
@@ -304,20 +306,19 @@ def encode():
                 b'\xff' if pixeldelta(
                     cell(oldpos, future_pixels), ALL_0) > 20 else b' '
             )
-            yield sim(oldest * LINES + 40, f'reassign {oldest}')
-            # fixme lookahead?
+            yield sim(oldest * LINES + 40, f'reassign {oldest} to {pos}')
             # fixme update-in-place?
             for ln in cell(pos, future_pixels):
                 yield sim(bytes([0x40 + ln]))
             yield sim(pos)
-            yield sim(f'CG{oldest}')
             cg_assign[pos] = oldest
+            yield sim(f'CG{oldest}')
 
 
 
 
 def frame_at_bytes(bsent):
-    return num_src_frames * bytes_sent // EEPROM_SIZE
+    return num_src_frames * bsent // EEPROM_SIZE
 
 encoder = encode()
 
