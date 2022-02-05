@@ -37,9 +37,19 @@ assert None not in pos_order
 
 pos_iter = cycle(pos_order)
 
-w = sys.stdout.write
+print('''#!/usr/bin/env python3
 
-w('CLR +\n')
+from baconstants import *
+
+with open('video.bin', 'wb') as f:
+    f.write(
+        INI + # function set: initial setup
+        HID + # hidden cursor
+        EI0 + # entry incrementing, no shift
+        CLR
+    )''')
+def w(x, comment=None):
+    print(f'    f.write({x})' + (f' # {comment}' if comment else ''))
 
 display_pos = 0   #  0-7 row 1,  10-17 row 2,  20-27 row 3,  30-37 row 4,  40+ cgram
 display_pixels = bytearray(COLS * ROWS * LINES)
@@ -166,9 +176,8 @@ def writecell(pat, p, pixels):
 
 def sim(b, comment=None):
     global display_pos, display_pixels, bytes_sent
-    end = f' # {comment}\n' if comment else '\n'
     if isinstance(b, bytes):  # literal byte
-        w(f'{repr(b)} +{end}')
+        w(f'{repr(b)}', comment)
         if b == b'\xff':
             writecell(ALL_1, display_pos, display_pixels)
         elif b == b' ':
@@ -184,7 +193,7 @@ def sim(b, comment=None):
         display_pos += 1
 
     elif isinstance(b, str):  # mnemonic
-        w(f'{b} +{end}')
+        w(f'{b}', comment)
         bytes_sent += 1
 
         if b.startswith('CG'):
@@ -194,15 +203,15 @@ def sim(b, comment=None):
 
     elif isinstance(b, int):  # position (output mnemonic)
         if b >= 40:
-            w(f'C{b - 40:02d} +{end}')
+            w(f'C{b - 40:02d}', comment)
         elif b >= 30:
-            w(f'E{b - 30 + 20:02d} +{end}')
+            w(f'E{b - 30 + 20:02d}', comment)
         elif b >= 20:
-            w(f'D{b - 20 + 20:02d} +{end}')
+            w(f'D{b - 20 + 20:02d}', comment)
         elif b >= 10:
-            w(f'E{b - 10:02d} +{end}')
+            w(f'E{b - 10:02d}', comment)
         else:
-            w(f'D{b:02d} +{end}')
+            w(f'D{b:02d}', comment)
         bytes_sent += 1
         display_pos = b
 
