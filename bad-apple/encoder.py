@@ -5,7 +5,7 @@ import gzip
 from itertools import zip_longest, repeat, cycle, islice
 
 SRC_FPS = 30
-EEPROM_SIZE = 32768 - 5 # init
+EEPROM_SIZE = 32768 - 4 # init
 NUM_LOOKAHEAD_FRAMES = 3
 CLOSE_ENOUGH_PIXELS = 4
 
@@ -203,7 +203,7 @@ def sim(b, comment=None):
 
     elif isinstance(b, int):  # position (output mnemonic)
         if b >= 40:
-            w(f'C{b - 40:02d}', comment)
+            w(f'C{(b - 40) // LINES:01d}{(b - 40) % LINES:01d}', comment)
         elif b >= 30:
             w(f'E{b - 30 + 20:02d}', comment)
         elif b >= 20:
