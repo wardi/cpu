@@ -275,7 +275,7 @@ def encode():
         if pos in cg_assign:
             reorder = cg_assign.pop(pos)
             cg_assign[pos] = reorder  # move to last
-            yield sim(reorder + 40, f'update assigned {reorder} at {pos}')
+            yield sim(reorder * LINES + 40, f'update assigned {reorder} at {pos}')
             # fixme update-in-place?
             for ln in cell(pos, future_pixels):
                 yield sim(bytes([0x40 + ln]))
