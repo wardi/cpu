@@ -5,9 +5,11 @@ import gzip
 from itertools import zip_longest, repeat, cycle, islice
 
 SRC_FPS = 30
-EEPROM_SIZE = 32768 - 4 # init
+EEPROM_SIZE = 32768 - 4  # init
 NUM_LOOKAHEAD_FRAMES = 3
 CLOSE_ENOUGH_PIXELS = 4
+TRIM_START_FRAMES = 29  # allowing room for intro text
+TRIM_END_FRAMES = 51
 
 PIXELS = 5  # horizontal pixels per cgram character
 LINES = 8  # vertical pixels per cgram character
@@ -355,6 +357,7 @@ while True:
     if not frame_pixels:
         break
     all_frames.append(frame_pixels)
+all_frames = all_frames[TRIM_START_FRAMES:-TRIM_END_FRAMES]
 num_src_frames = len(all_frames)
 all_frames.extend([frame_pixels] * NUM_LOOKAHEAD_FRAMES)
 
