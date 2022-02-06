@@ -250,7 +250,7 @@ def encode():
                     left = cell(p, frame_pixels)
                 except IndexError:
                     break
-                if not solid(left) or left == cell(p, display_pixels):
+                if not solid(left) or solid(left) == solid(cell(p, display_pixels)):
                     break
                 pos = p
             yield sim(pos)
