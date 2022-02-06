@@ -1,0 +1,51 @@
+012345678901234567890
+[      ] Bad Apple on
+[      ]  32K EEPROM
+[      ] excess.org/
+[      ]  bad-apple
+
+# 46 bytes removed
+    f.write(D09 + b'Bad Apple on') # 13
+    f.write(E10 + b'32K EEPROM') # 11
+    f.write(D29 + b'excess.org/') # 12
+    f.write(E30 + b'bad-apple') # 10
+
+012345678901234567890
+[      ]  40 x 32
+[      ] resolution
+[      ] excess.org/
+[      ]  bad-apple
+
+# 25 bytes removed
+    f.write(D09 + b' 40 x 32    ') # 13
+    f.write(E09 + b'resolution ') # 12
+
+012345678901234567890
+[      ]  8 custom
+[      ] characters
+[      ] excess.org/
+[      ]  bad-apple
+
+# 20 bytes removed
+    f.write(D10 +  b'8 custom') # 9
+    f.write(E09 + b'characters') # 11
+
+012345678901234567890
+[      ] LCD display
+[      ] persistence
+[      ] excess.org/
+[      ]  bad-apple
+
+# 24 bytes removed
+    f.write(D09 + b'LCD display') # 12
+    f.write(E09 + b'persistence') # 12
+
+012345678901234567890
+[      ] Bad Apple on
+[      ]  32K EEPROM
+[      ] excess.org/
+[      ]  bad-apple
+
+# 25 bytes removed
+    f.write(D09 + b'Bad Apple on') # 13
+    f.write(E09 + b' 32K EEPROM') # 12
