@@ -14,6 +14,7 @@ LINES = 8  # vertical pixels per cgram character
 COLS = 8
 ROWS = 4
 CGRAM = 8
+MAX_DELTA = PIXELS * LINES * COLS * ROWS
 
 ALL_0 = b'\x00' * 8
 ALL_1 = b'\x1f' * 8
@@ -117,17 +118,19 @@ def solid(a):
         return b'\xff'
 
 def print_state():
+    delta = pixeldelta(frame_pixels, display_pixels)
     for f, d, i in zip_longest(
             braillepixels(intpixels(frame_pixels)),
             braillepixels(intpixels(display_pixels)),
             [
                 f'frame {file_frame}',
                 f'position {display_pos}',
-                'delta {}'.format(
-                    pixeldelta(frame_pixels, display_pixels)),
+                f'delta {delta}',
+                '▴' * min(50, int(delta * 80 / MAX_DELTA)),
+                f'cgram {len(cg_assign)}/{CGRAM}',
                 f'{cg_assign}',
             ],
-            fillvalue = '',
+            fillvalue = '.',
         ):
         print('#', f, '»', d, i)
 
