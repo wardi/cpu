@@ -49,6 +49,7 @@ with open('video.bin', 'wb') as f:
         EI0 + # entry incrementing, no shift
         CLR
     )''')
+
 def w(x, comment=None):
     print(f'    f.write({x})' + (f' # {comment}' if comment else ''))
 
@@ -110,8 +111,11 @@ def pixeldelta(a, b):
         int.from_bytes(a, 'little') ^ int.from_bytes(b, 'little')
     ).count('1')
 
+def pixel1s(a):
+    return bin(int.from_bytes(a, 'little')).count('1')
+
 def solid(a):
-    n = bin(int.from_bytes(a, 'little')).count('1')
+    n = pixel1s(a)
     if n <= CLOSE_ENOUGH_PIXELS:
         return b' '
     if n >= PIXELS * LINES - CLOSE_ENOUGH_PIXELS:
@@ -204,6 +208,10 @@ def sim(b, comment=None):
             writecell(cg_pixels[n * LINES:][:LINES], display_pos, display_pixels)
             display_pos += 1
 
+        if b == 'CLR':
+            display_pos = 0
+            display_pixels[:] = b'\x00' * len(display_pixels)
+
     elif isinstance(b, int):  # position (output mnemonic)
         if b >= 40:
             w(f'C{(b - 40) // LINES:01d}{(b - 40) % LINES:01d}', comment)
@@ -221,6 +229,13 @@ def sim(b, comment=None):
 
 def encode():
     while True:
+
+# if clear screen is better match than current display, clear it
+        delta = pixeldelta(frame_pixels, display_pixels)
+        if delta > MAX_DELTA / 2 and delta > 1.5 * pixel1s(frame_pixels):
+            cg_assign.clear()
+            yield sim('CLR')
+            continue
 
 # if cursor already on cell that needs to be all 0s or all 1s
 # - (advance 1): ' ' or '\xff'
