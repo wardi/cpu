@@ -304,7 +304,12 @@ def encode():
             for pos in islice(pos_iter, COLS * ROWS):
                 here = cell(pos, future_pixels)
                 if pixeldelta(here, cell(pos, display_pixels)):
-                    break
+                    # check that this cell doesn't go solid very soon afterwards
+                    if not any(
+                            solid_exact(cell(pos, all_frames[f]))
+                            for f in range(future + 1, future + 1 + NUM_LOOKAHEAD_FRAMES)
+                        ):
+                        break
             else:
 # if none emit NOP (advance 1)
                 yield sim('INI')  # stand-in for "NOP"
