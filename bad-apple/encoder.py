@@ -6,7 +6,7 @@ from itertools import zip_longest, repeat, cycle, islice
 
 SRC_FPS = 30
 EEPROM_SIZE = 32768 - 4  # init
-NUM_LOOKAHEAD_FRAMES = 3
+NUM_LOOKAHEAD_FRAMES = 4
 CLOSE_ENOUGH_PIXELS = 4
 TRIM_START_FRAMES = 29  # allowing room for intro text
 TRIM_END_FRAMES = 51
@@ -39,6 +39,36 @@ for y, ln in enumerate(order.strip().split('\n')):
 assert None not in pos_order
 
 pos_iter = cycle(pos_order)
+
+def ovs(s):
+    'convert bytes to array of single-byte reprs for output'
+    return [repr(bytes([b])) for b in s]
+
+output_override = {}
+output_override.update({i: b for (i, b) in enumerate(
+    ['D08'] + ovs(b'Bad Apple on') +  # 0 bytes to spare
+    ['E08'] + ovs(b'32K EEPROM') +  # (reduce TRIM_START_FRAMES for more)
+    ['D29'] + ovs(b'excess.org/') +
+    ['E31'] + ovs(b'bad-apple'),
+    start=35,
+)})
+output_override.update({i: b for (i, b) in enumerate(
+    ['E08'] + ovs(b'40x32 pixels'),  # 9 bytes to spare
+    start=11703,
+)})
+output_override.update({i: b for (i, b) in enumerate(
+    ['E08'] + ovs(b'8 CGRAM chrs'),  # lots of extra room here
+    start=16614,
+)})
+output_override.update({i: b for (i, b) in enumerate(
+    ['E08'] + ovs(b'LCD persist.'),  # 0 bytes to spare
+    start=22921,
+)})
+output_override.update({i: b for (i, b) in enumerate(
+    ['E08'] + ovs(b'32K EEPROM  '),  # lots of extra room here
+    start=29586,
+)})
+
 
 print('''#!/usr/bin/env python3
 
@@ -137,6 +167,7 @@ def print_state():
             braillepixels(intpixels(display_pixels)),
             [
                 f'frame {file_frame}',
+                f'bytes sent {bytes_sent}',
                 f'position {display_pos}',
                 f'delta {delta}',
                 '▴' * min(50, int(delta * 80 / MAX_DELTA)),
@@ -192,7 +223,12 @@ def writecell(pat, p, pixels):
 
 def sim(b, comment=None):
     global display_pos, display_pixels, bytes_sent
-    if isinstance(b, bytes):  # literal byte
+    if bytes_sent in output_override:
+        assert b == 'INI', (bytes_sent, b, output_override[bytes_sent])
+        w(output_override[bytes_sent], comment)
+        bytes_sent += 1
+
+    elif isinstance(b, bytes):  # literal byte
         w(f'{repr(b)}', comment)
         if b == b'\xff':
             writecell(ALL_1, display_pos, display_pixels)
