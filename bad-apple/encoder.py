@@ -123,6 +123,13 @@ def solid(a):
     if n >= PIXELS * LINES - CLOSE_ENOUGH_PIXELS:
         return b'\xff'
 
+def solid_exact(a):
+    n = pixel1s(a)
+    if n == 0:
+        return b' '
+    if n == PIXELS * LINES:
+        return b'\xff'
+
 def print_state():
     delta = pixeldelta(frame_pixels, display_pixels)
     for f, d, i in zip_longest(
@@ -294,10 +301,14 @@ def encode():
 #     cgposition, 8 * bit pattern
 # - if unassigned, 1+ available (advance 9):
 #     cgposition, 8 * bit pattern, position, cgchar
-
+            for pos in islice(pos_iter, COLS * ROWS):
+                here = cell(pos, future_pixels)
+                if pixeldelta(here, cell(pos, display_pixels)):
+                    break
+            else:
 # if none emit NOP (advance 1)
-            yield sim('INI')  # stand-in for "NOP"
-            continue
+                yield sim('INI')  # stand-in for "NOP"
+                continue
 
 # - if assigned (advance 7):  * or update-in-place (advance <7)
 #     cgposition, 8 * bit pattern
