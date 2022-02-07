@@ -236,6 +236,23 @@ def sim(b, comment=None):
         display_pos = b
 
 
+def minimal_update(cgnum, arr, comment=None):
+    """
+    yield minimal steps for update of cgram position (cgnum)
+    with bytearray (arr)
+    """
+    cgpos = cgnum * LINES
+    pos = None
+    for i, (cg, b) in enumerate(zip(cg_pixels[cgpos:], arr)):
+        if cg == b + 0x40:
+            continue
+        if pos != i:
+            yield sim(cgpos + i + 40, comment)
+            comment = None
+        yield sim(bytes([0x40 + b]))
+        pos = i + 1
+
+
 def encode():
     while True:
 
@@ -320,10 +337,11 @@ def encode():
         if pos in cg_assign:
             reorder = cg_assign.pop(pos)
             cg_assign[pos] = reorder  # move to last
-            yield sim(reorder * LINES + 40, f'update assigned {reorder} at {pos}')
-            # fixme update-in-place?
-            for ln in cell(pos, future_pixels):
-                yield sim(bytes([0x40 + ln]))
+            yield from minimal_update(
+                reorder,
+                cell(pos, future_pixels),
+                f'update assigned {reorder} at {pos}',
+            )
             continue
 
 # - if unassigned, 1+ available (advance 9):
@@ -331,10 +349,11 @@ def encode():
         if len(cg_assign) < CGRAM:
             # fixme choose best match from avail
             avail = next(x for x in range(CGRAM) if x not in cg_assign.values())
-            yield sim(avail * LINES + 40, f'assign {avail} to {pos}')
-            # fixme update-in-place?
-            for ln in cell(pos, future_pixels):
-                yield sim(bytes([0x40 + ln]))
+            yield from minimal_update(
+                avail,
+                cell(pos, future_pixels),
+                f'assign {avail} to {pos}',
+            )
             yield sim(pos)
             cg_assign[pos] = avail
             yield sim(f'CG{avail}')
@@ -351,10 +370,11 @@ def encode():
                 b'\xff' if pixeldelta(
                     cell(oldpos, future_pixels), ALL_0) > 20 else b' '
             )
-            yield sim(oldest * LINES + 40, f'reassign {oldest} to {pos}')
-            # fixme update-in-place?
-            for ln in cell(pos, future_pixels):
-                yield sim(bytes([0x40 + ln]))
+            yield from minimal_update(
+                oldest,
+                cell(pos, future_pixels),
+                f'reassign {oldest} to {pos}'
+            )
             yield sim(pos)
             cg_assign[pos] = oldest
             yield sim(f'CG{oldest}')
