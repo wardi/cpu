@@ -53,7 +53,7 @@ output_override.update({i: b for (i, b) in enumerate(
     start=35,
 )})
 output_override.update({i: b for (i, b) in enumerate(
-    ['E08'] + ovs(b'40x32 pixels'),  # 9 bytes to spare
+    ['E08'] + ovs(b'40x32 pixels'),  # ~9 bytes to spare
     start=11703,
 )})
 output_override.update({i: b for (i, b) in enumerate(
@@ -61,8 +61,8 @@ output_override.update({i: b for (i, b) in enumerate(
     start=16614,
 )})
 output_override.update({i: b for (i, b) in enumerate(
-    ['E08'] + ovs(b'LCD persist.'),  # 0 bytes to spare
-    start=22921,
+    ['E08'] + ovs(b'LCD persist.'),  # ~4 bytes to spare
+    start=22917,
 )})
 output_override.update({i: b for (i, b) in enumerate(
     ['E08'] + ovs(b'32K EEPROM  '),  # lots of extra room here
@@ -272,7 +272,7 @@ def sim(b, comment=None):
         display_pos = b
 
 
-def minimal_update(cgnum, arr, comment=None):
+def minimal_update(cgnum, arr, comment=None, sim_fn=sim):
     """
     yield minimal steps for update of cgram position (cgnum)
     with bytearray (arr)
@@ -283,9 +283,9 @@ def minimal_update(cgnum, arr, comment=None):
         if cg == b + 0x40:
             continue
         if pos != i:
-            yield sim(cgpos + i + 40, comment)
+            yield sim_fn(cgpos + i + 40, comment)
             comment = None
-        yield sim(bytes([0x40 + b]))
+        yield sim_fn(bytes([0x40 + b]))
         pos = i + 1
 
 
@@ -383,16 +383,28 @@ def encode():
 # - if unassigned, 1+ available (advance 9):
 #     cgposition, 8 * bit pattern, position, cgchar
         if len(cg_assign) < CGRAM:
-            # fixme choose best match from avail
-            avail = next(x for x in range(CGRAM) if x not in cg_assign.values())
+            best = None
+            shortest = None
+            for i in range(CGRAM):
+                if i in cg_assign.values():
+                    continue
+                steps = sum(1 for e in minimal_update(
+                    i,
+                    cell(pos, future_pixels),
+                    sim_fn=(lambda x,y=0:x),
+                ))
+                if best is None or steps < shortest:
+                    best = i
+                    shortest = steps
+            assert best is not None
             yield from minimal_update(
-                avail,
+                best,
                 cell(pos, future_pixels),
-                f'assign {avail} to {pos}',
+                f'assign {best} to {pos} ({shortest} steps)',
             )
             yield sim(pos)
-            cg_assign[pos] = avail
-            yield sim(f'CG{avail}')
+            cg_assign[pos] = best
+            yield sim(f'CG{best}')
 
 # - else (advance 13):
 #     reorder oldest assigned to last

@@ -6,7 +6,7 @@
 
 01234567890123456789
 [      ]Bad Apple on
-[      ]40 x 32 res.
+[      ]40x32 pixels
 [      ] excess.org/
 [      ]   bad-apple
 
