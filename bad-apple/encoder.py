@@ -53,19 +53,25 @@ output_override.update({i: b for (i, b) in enumerate(
     start=35,
 )})
 output_override.update({i: b for (i, b) in enumerate(
-    ['E08'] + ovs(b'40x32 pixels'),  # ~9 bytes to spare
-    start=11703,
+    ['D08'] + ovs(b'Bad Apple at') +
+    ['E08'] + ovs(b'~ 1.2 kbps \x7f') +  # ~ is → and \xf7 is ←
+    ['D28'] + ovs(b'40x32 pixels') +
+    ['E28'] + ovs(b'8 CGRAM chrs'),
+    start=13696,
 )})
+#output_override.update({i: b for (i, b) in enumerate(
+#    ['E08'] + ovs(b'8 CGRAM chrs'),  # lots of extra room here
+#    start=16614,
+#)})
+#output_override.update({i: b for (i, b) in enumerate(
+#    ['E08'] + ovs(b'LCD persist.'),  # ~2 bytes to spare
+#    start=22919,
+#)})
 output_override.update({i: b for (i, b) in enumerate(
-    ['E08'] + ovs(b'8 CGRAM chrs'),  # lots of extra room here
-    start=16614,
-)})
-output_override.update({i: b for (i, b) in enumerate(
-    ['E08'] + ovs(b'LCD persist.'),  # ~4 bytes to spare
-    start=22917,
-)})
-output_override.update({i: b for (i, b) in enumerate(
-    ['E08'] + ovs(b'32K EEPROM  '),  # lots of extra room here
+    ['D08'] + ovs(b'Bad Apple on') +  # 0 bytes to spare
+    ['E08'] + ovs(b'32K EEPROM ') +  # (reduce TRIM_START_FRAMES for more)
+    ['D28'] + ovs(b' excess.org/') +
+    ['E28'] + ovs(b'   bad-apple'),
     start=29586,
 )})
 
@@ -306,7 +312,9 @@ def encode():
         except IndexError:
             pass
         else:
-            if solid(here) and solid(here) != solid(cell(display_pos, display_pixels)):
+            c = cell(display_pos, display_pixels)
+            if (solid(here) and solid(here) != solid(c)
+                    ) or (solid_exact(here) and not solid_exact(c)):
                 if display_pos in cg_assign:
                     freed = cg_assign.pop(display_pos)
                     yield sim(solid(here), f'free {freed} at {display_pos}')
@@ -317,8 +325,10 @@ def encode():
 # choose the next cell that needs to be all 0s or all 1s next in order (leftmost applicable)
 # - (advance 2): position, ' ' or '\xff'
         for pos in islice(pos_iter, COLS * ROWS):
+            c = cell(pos, display_pixels)
             here = cell(pos, frame_pixels)
-            if solid(here) and solid(here) != solid(cell(pos, display_pixels)):
+            if (solid(here) and solid(here) != solid(c)
+                    ) or (solid_exact(here) and not solid_exact(c)):
                 break
         else:
             pos = None
