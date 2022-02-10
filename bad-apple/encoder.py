@@ -53,10 +53,10 @@ output_override.update({i: b for (i, b) in enumerate(
     start=35,
 )})
 output_override.update({i: b for (i, b) in enumerate(
-    ['D08'] + ovs(b'Bad Apple at') +
-    ['E08'] + ovs(b'~ 1.2 kbps \x7f') +  # ~ is → and \xf7 is ←
-    ['D28'] + ovs(b'40x32 pixels') +
-    ['E28'] + ovs(b'8 CGRAM chrs'),
+    ['D08'] + ovs(b'~1.2 kbit/s\x7f') +  # ~ is → and \xf7 is ←
+    ['E08'] + ovs(b'40x32 pixels') +
+    ['D28'] + ovs(b'8 cgram chrs') +
+    ['E28'] + ovs(b'HD44780 LCD'),
     start=13696,
 )})
 #output_override.update({i: b for (i, b) in enumerate(
@@ -68,8 +68,8 @@ output_override.update({i: b for (i, b) in enumerate(
 #    start=22919,
 #)})
 output_override.update({i: b for (i, b) in enumerate(
-    ['D08'] + ovs(b'Bad Apple on') +  # 0 bytes to spare
-    ['E08'] + ovs(b'32K EEPROM ') +  # (reduce TRIM_START_FRAMES for more)
+    ['D08'] + ovs(b'Bad Apple on') +
+    ['E08'] + ovs(b'32K EEPROM  ') +
     ['D28'] + ovs(b' excess.org/') +
     ['E28'] + ovs(b'   bad-apple'),
     start=29586,
