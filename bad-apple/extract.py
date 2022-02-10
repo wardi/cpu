@@ -14,9 +14,9 @@ def draw_bits(bits):
     #import time
     #time.sleep(1/30)
 
-video = cv2.VideoCapture('Bad Apple Edit1.mp4.mov')
+video = cv2.VideoCapture('Bad Apple Edit3.mp4.mov')
 
-with open('badapple1.bits', 'wb') as f:
+with open('badapple3.bits', 'wb') as f:
     while True:
         ret, frame = video.read()
         if not ret:
