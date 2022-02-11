@@ -47,7 +47,7 @@ def ovs(s):
 output_override = {}
 output_override.update({i: b for (i, b) in enumerate(
     ['E13'] + ovs(b'Bad') +
-    ['D34'] + ovs(b'Apple'),
+    ['D32'] + ovs(b'Apple'),
     start=35,
 )})
 output_override.update({i: b for (i, b) in enumerate(
