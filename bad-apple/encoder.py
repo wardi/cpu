@@ -6,7 +6,7 @@ from itertools import zip_longest, repeat, cycle, islice
 
 SRC_FPS = 30
 EEPROM_SIZE = 32768 - 4  # init
-NUM_LOOKAHEAD_FRAMES = 4
+NUM_LOOKAHEAD_FRAMES = 3
 CLOSE_ENOUGH_PIXELS = 4
 TRIM_START_FRAMES = 29  # allowing room for intro text
 TRIM_END_FRAMES = 51
@@ -46,10 +46,8 @@ def ovs(s):
 
 output_override = {}
 output_override.update({i: b for (i, b) in enumerate(
-    ['D08'] + ovs(b'Bad Apple on') +  # 0 bytes to spare
-    ['E08'] + ovs(b'32K EEPROM') +  # (reduce TRIM_START_FRAMES for more)
-    ['D29'] + ovs(b'excess.org/') +
-    ['E31'] + ovs(b'bad-apple'),
+    ['E13'] + ovs(b'Bad') +
+    ['D34'] + ovs(b'Apple'),
     start=35,
 )})
 output_override.update({i: b for (i, b) in enumerate(
