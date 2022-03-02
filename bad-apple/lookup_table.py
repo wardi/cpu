@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-hex_map = """
+lookup_table = """
 c00:04 c20:05 12 13 14 15 16 17 d00:08 d16:09 d32:0a c40:06 e00:0c e16:0d e32:0e c60:07
 clr:00 c21:05 12 13 14 15 16 17 d01:08 d17:09 c01:04 c41:06 e01:0c e17:0d e33:0e c61:07
 hom:00 c22:05 12 13 14 15 16 17 d02:08 d18:09 c02:04 c42:06 e02:0c e18:0d e34:0e c62:07
@@ -19,7 +19,7 @@ cg6:10 cur:00 12 13 14 15 16 17 d14:08 d30:09 c16:04 c56:06 e14:0c e30:0d c36:05
 cg7:10 c77:07 12 13 14 15 16 17 d15:08 d31:09 c17:04 c57:06 e15:0c e31:0d c37:05 1f
 """
 
-rows = hex_map.strip().split('\n')
+rows = lookup_table.strip().split('\n')
 assert len(rows) == 16, f'Expecting 16 rows, found {len(rows)}'
 
 for i, r in enumerate(rows):
@@ -28,7 +28,7 @@ for i, r in enumerate(rows):
 
 columns = zip(*(r.split() for r in rows))
 
-with open('bahexmap.bin', 'wb') as f:
+with open('lookup-table.bin', 'wb') as f:
     for i, cell in enumerate(cell for col in columns for cell in col):
         mnemonic, sep, code = cell.rpartition(':')
         if sep:
