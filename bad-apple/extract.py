@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import cv2
+import gzip
 
 OUT_W = 5 * 8 + 7
 OUT_H = 8 * 4 + 3
@@ -16,7 +17,7 @@ def draw_bits(bits):
 
 video = cv2.VideoCapture('Bad Apple Edit3.mp4.mov')
 
-with open('badapple3.bits', 'wb') as f:
+with gzip.open('badapple.encode-ready.gz', 'wb') as f:
     while True:
         ret, frame = video.read()
         if not ret:
