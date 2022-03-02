@@ -1,5 +1,13 @@
 #!/usr/bin/env python3
+'''
+usage:
+    lookup_table.py > baconstants.py
 
+overwrites lookup-table.bin
+'''
+
+# byte order from top->bottom, left->right
+# (mnemonic:)hex-value
 hex_map = """
 C00:04 C20:05 12 13 14 15 16 17 D00:08 D16:09 D32:0a C40:06 E00:0c E16:0d E32:0e C60:07
 CLR:00 C21:05 12 13 14 15 16 17 D01:08 D17:09 C01:04 C41:06 E01:0c E17:0d E33:0e C61:07
