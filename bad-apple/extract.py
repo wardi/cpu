@@ -5,9 +5,9 @@ import gzip
 OUT_W = 5 * 8 + 7
 OUT_H = 8 * 4 + 3
 
-video = cv2.VideoCapture('Bad Apple Edit3.mp4.mov')
+video = cv2.VideoCapture(sys.argv[1])
 
-with gzip.open('badapple.encode-ready.gz', 'wb') as f:
+with gzip.open(sys.argv[2], 'wb') as f:
     while True:
         ret, frame = video.read()
         if not ret:

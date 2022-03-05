@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 '''
 usage:
-    lookup_table.py > baconstants.py
+    lookup_table.py > baconsts.py
 
-overwrites lookup-table.bin
+overwrites ltable.bin
 '''
 
 # byte order from top->bottom, left->right
@@ -36,7 +36,7 @@ for i, r in enumerate(rows):
 
 columns = zip(*(r.split() for r in rows))
 
-with open('lookup-table.bin', 'wb') as f:
+with open('ltable.bin', 'wb') as f:
     for i, cell in enumerate(cell for col in columns for cell in col):
         mnemonic, sep, code = cell.rpartition(':')
         if sep:

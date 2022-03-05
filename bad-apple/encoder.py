@@ -76,7 +76,7 @@ output_override.update({i: b for (i, b) in enumerate(
 
 print('''#!/usr/bin/env python3
 
-from baconstants import *
+from baconsts import *
 
 with open('video.bin', 'wb') as f:
     f.write(
