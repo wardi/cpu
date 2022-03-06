@@ -172,7 +172,7 @@ def print_state():
             [
                 f'frame {file_frame}',
                 f'bytes sent {bytes_sent}',
-                f'position {display_pos}',
+                f'position {position_mnemonic(display_pos)}',
                 f'delta {delta}',
                 '▴' * min(50, int(delta * 80 / MAX_DELTA)),
                 f'cgram {len(cg_assign)}/{CGRAM}',
@@ -262,18 +262,20 @@ def sim(b, comment=None):
             display_pixels[:] = b'\x00' * len(display_pixels)
 
     elif isinstance(b, int):  # position (output mnemonic)
-        if b >= 40:
-            w(f'C{(b - 40) // LINES:01d}{(b - 40) % LINES:01d}', comment)
-        elif b >= 30:
-            w(f'E{b - 30 + 20:02d}', comment)
-        elif b >= 20:
-            w(f'D{b - 20 + 20:02d}', comment)
-        elif b >= 10:
-            w(f'E{b - 10:02d}', comment)
-        else:
-            w(f'D{b:02d}', comment)
+        w(position_mnemonic(b), comment)
         bytes_sent += 1
         display_pos = b
+
+def position_mnemonic(pos):
+    if pos >= 40:
+        return f'C{(pos - 40) // LINES:01d}{(pos - 40) % LINES:01d}'
+    elif pos >= 30:
+        return f'E{pos - 30 + 20:02d}'
+    elif pos >= 20:
+        return f'D{pos - 20 + 20:02d}'
+    elif pos >= 10:
+        return f'E{pos - 10:02d}'
+    return f'D{pos:02d}'
 
 
 def minimal_update(cgnum, arr, comment=None, sim_fn=sim):
