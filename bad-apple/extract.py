@@ -2,8 +2,8 @@
 import cv2
 import gzip
 
-OUT_W = 5 * 8 + 7
-OUT_H = 8 * 4 + 3
+OUT_W = 5 * 8 + 7  # pixels * columns + pixel spaces in between
+OUT_H = 8 * 4 + 3  # pixels * rows + pixel spaces in between
 
 video = cv2.VideoCapture(sys.argv[1])
 
@@ -16,7 +16,7 @@ with gzip.open(sys.argv[2], 'wb') as f:
         frame = cv2.resize(frame, (OUT_W, OUT_H), interpolation=cv2.INTER_AREA)
         ret, frame = cv2.threshold(frame, 127, 255, cv2.THRESH_BINARY_INV)
 
-# collapse [0, 0, 0] / [255, 255, 255] into 0 / 1
+        # convert [0, 0, 0] / [255, 255, 255] pixels into 0s / 1s
         bits = frame.reshape(OUT_H * OUT_W * 3)[::3].reshape(OUT_H, OUT_W) // 255
 
         for top in range(0, OUT_H, 9):
