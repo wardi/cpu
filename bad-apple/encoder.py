@@ -176,7 +176,10 @@ def print_state():
                 f'delta {delta}',
                 '▴' * min(50, int(delta * 80 / MAX_DELTA)),
                 f'cgram {len(cg_assign)}/{CGRAM}',
-                f'{cg_assign}',
+                ' '.join(
+                    f'{position_mnemonic(p)}:CG{c}'
+                    for p, c in cg_assign.items()
+                ),
             ],
             fillvalue = '.',
         ):
@@ -317,7 +320,7 @@ def encode():
                     ) or (solid_exact(here) and not solid_exact(c)):
                 if display_pos in cg_assign:
                     freed = cg_assign.pop(display_pos)
-                    yield sim(solid(here), f'free {freed} at {display_pos}')
+                    yield sim(solid(here), f'free CG{freed} at {position_mnemonic(display_pos)}')
                 else:
                     yield sim(solid(here))
                 continue
@@ -386,7 +389,7 @@ def encode():
             yield from minimal_update(
                 reorder,
                 cell(pos, future_pixels),
-                f'update assigned {reorder} at {pos}',
+                f'update assigned CG{reorder} at {position_mnemonic(pos)}',
             )
             continue
 
@@ -410,7 +413,7 @@ def encode():
             yield from minimal_update(
                 best,
                 cell(pos, future_pixels),
-                f'assign {best} to {pos} ({shortest} steps)',
+                f'assign CG{best} to {position_mnemonic(pos)} ({shortest} steps)',
             )
             yield sim(pos)
             cg_assign[pos] = best
@@ -423,7 +426,7 @@ def encode():
         else:
             oldpos, oldest = next(iter(cg_assign.items()))
             cg_assign.pop(oldpos)
-            yield sim(oldpos, f'evict {oldest} at {oldpos}')
+            yield sim(oldpos, f'evict CG{oldest} at {position_mnemonic(oldpos)}')
             yield sim(
                 b'\xff' if pixeldelta(
                     cell(oldpos, future_pixels), ALL_0) > 20 else b' '
@@ -431,7 +434,7 @@ def encode():
             yield from minimal_update(
                 oldest,
                 cell(pos, future_pixels),
-                f'reassign {oldest} to {pos}'
+                f'reassign CG{oldest} to {position_mnemonic(pos)}'
             )
             yield sim(pos)
             cg_assign[pos] = oldest
