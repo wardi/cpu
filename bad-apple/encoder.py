@@ -57,14 +57,6 @@ output_override.update({i: b for (i, b) in enumerate(
     ['E28'] + ovs(b'HD44780 LCD'),
     start=13696,
 )})
-#output_override.update({i: b for (i, b) in enumerate(
-#    ['E08'] + ovs(b'8 CGRAM chrs'),  # lots of extra room here
-#    start=16614,
-#)})
-#output_override.update({i: b for (i, b) in enumerate(
-#    ['E08'] + ovs(b'LCD persist.'),  # ~2 bytes to spare
-#    start=22919,
-#)})
 output_override.update({i: b for (i, b) in enumerate(
     ['D08'] + ovs(b'Bad Apple on') +
     ['E08'] + ovs(b'32K EEPROM  ') +
