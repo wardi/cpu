@@ -5,35 +5,35 @@ import time
 
 import car
 
-D0 = 0
-D1 = 1
-D2 = 2
-D3 = 3
-D4 = 4
-D5 = 5
-D6 = 6
-D7 = 7
-RS = 8
-RW = 9
-E = 10
-NUM_PINS = 11
-
+D0 = 18
+D1 = 16
+D2 = 15
+D3 = 13
+D4 = 12
+D5 = 11
+D6 = 10
+D7 = 8
+RS = 22
+RW = 21
+E = 19
+PINS = (D0, D1, D2, D3, D4, D5, D6, D7, RS, RW, E)
+D_PINS = PINS[:8]
 READY_TIME = 0.00001
 
 def init():
-    GPIO.setmode(GPIO.BCM)
-    for p in range(NUM_PINS):
+    GPIO.setmode(GPIO.BOARD)
+    for p in PINS:
         GPIO.setup(p, GPIO.OUT)
         GPIO.output(p, 0)
 
 def cleanup():
     GPIO.output(RS, 0)
     GPIO.output(RW, 1)
-    for p in range(NUM_PINS):
+    for p in PINS:
         GPIO.setup(p, GPIO.IN)
 
 def wait():
-    for p in range(8):
+    for p in D_PINS:
         GPIO.setup(p, GPIO.IN)
     GPIO.output(RS, 0)
     GPIO.output(RW, 1)
@@ -45,14 +45,14 @@ def wait():
         if not busy:
             break
 
-    for p in range(8):
+    for p in D_PINS:
         GPIO.setup(p, GPIO.OUT)
 
 
 def command(b):
     wait()
-    for p in range(8):
-        GPIO.output(p, (b >> p) & 1)
+    for j, p in enumerate(D_PINS):
+        GPIO.output(p, (b >> j) & 1)
     GPIO.output(RS, 0)
     GPIO.output(RW, 0)
     enable()
@@ -64,14 +64,14 @@ def enable():
 def write(s):
     for b in s:
         wait()
-        for p in range(8):
-            GPIO.output(p, (b >> p) & 1)
+        for j, p in enumerate(D_PINS):
+            GPIO.output(p, (b >> j) & 1)
         GPIO.output(RS, 1)
         GPIO.output(RW, 0)
         enable()
 
 def read(n=1):
-    for p in range(8):
+    for p in D_PINS:
         GPIO.setup(p, GPIO.IN)
     GPIO.output(RS, 1)
     GPIO.output(RW, 1)
@@ -80,12 +80,12 @@ def read(n=1):
         b = 0
         GPIO.output(E, 1)
         time.sleep(READY_TIME)
-        for p in range(8):
-            b |= GPIO.input(p) << p
+        for j, p in enumerate(D_PINS):
+            b |= GPIO.input(p) << j
         GPIO.output(E, 0)
         out.append(chr(b))
     GPIO.output(RW, 0)
-    for p in range(8):
+    for p in D_PINS:
         GPIO.setup(p, GPIO.OUT)
     return ''.join(out)
 
