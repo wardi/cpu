@@ -18,23 +18,21 @@ RW = 21
 E = 19
 PINS = (D0, D1, D2, D3, D4, D5, D6, D7, RS, RW, E)
 D_PINS = PINS[:8]
+D_BITS = tuple(range(8))
 READY_TIME = 0.00001
 
 def init():
     GPIO.setmode(GPIO.BOARD)
-    for p in PINS:
-        GPIO.setup(p, GPIO.OUT)
-        GPIO.output(p, 0)
+    GPIO.setup(PINS, GPIO.OUT)
+    GPIO.output(PINS, 0)
 
 def cleanup():
     GPIO.output(RS, 0)
     GPIO.output(RW, 1)
-    for p in PINS:
-        GPIO.setup(p, GPIO.IN)
+    GPIO.setup(PINS, GPIO.IN)
 
 def wait():
-    for p in D_PINS:
-        GPIO.setup(p, GPIO.IN)
+    GPIO.setup(D_PINS, GPIO.IN)
     GPIO.output(RS, 0)
     GPIO.output(RW, 1)
     while True:
@@ -45,14 +43,12 @@ def wait():
         if not busy:
             break
 
-    for p in D_PINS:
-        GPIO.setup(p, GPIO.OUT)
+    GPIO.setup(D_PINS, GPIO.OUT)
 
 
 def command(b):
     wait()
-    for j, p in enumerate(D_PINS):
-        GPIO.output(p, (b >> j) & 1)
+    GPIO.output(D_PINS, tuple((b >> j) & 1 for j in D_BITS))
     GPIO.output(RS, 0)
     GPIO.output(RW, 0)
     enable()
@@ -64,30 +60,10 @@ def enable():
 def write(s):
     for b in s:
         wait()
-        for j, p in enumerate(D_PINS):
-            GPIO.output(p, (b >> j) & 1)
+        GPIO.output(D_PINS, tuple((b >> j) & 1 for j in D_BITS))
         GPIO.output(RS, 1)
         GPIO.output(RW, 0)
         enable()
-
-def read(n=1):
-    for p in D_PINS:
-        GPIO.setup(p, GPIO.IN)
-    GPIO.output(RS, 1)
-    GPIO.output(RW, 1)
-    out = []
-    for i in range(n):
-        b = 0
-        GPIO.output(E, 1)
-        time.sleep(READY_TIME)
-        for j, p in enumerate(D_PINS):
-            b |= GPIO.input(p) << j
-        GPIO.output(E, 0)
-        out.append(chr(b))
-    GPIO.output(RW, 0)
-    for p in D_PINS:
-        GPIO.setup(p, GPIO.OUT)
-    return ''.join(out)
 
 
 if __name__ == '__main__':
