@@ -63,9 +63,12 @@ def write(s):
         GPIO.output(RW, 0)
         enable()
 
-delta = np.linspace(0, 1, 20)
-mod = np.empty(20)
+delta = np.linspace(0, 1, 32)
+mod = np.empty(32)
 mod.fill(.5)
+
+drawing = 0.
+sleeping = 0.
 
 if __name__ == '__main__':
     try:
@@ -82,10 +85,19 @@ if __name__ == '__main__':
             # 0 -> b' ', 1 -> b'\xff'
             b = (carry*(255-32)+32).astype('b').tobytes()
             #command(0b00000010)  # home
-            write(b*4)
+            #command(0b00001000)  # display off
+            t1 = time.time()
+            write(b[:20] + b[8:28] + b[4:24] + b[12:])
+            #command(0b00001100)  # display on
             #input()
-            #time.sleep(1/550)
+            t2 = time.time()
+            time.sleep(1/90)#np.random.ranf()/500 + 1/90)
+            t3 = time.time()
+            #time.sleep(1/100)# + np.clip(np.random.randn(),-1,1)/500)
+            drawing += t2 - t1
+            sleeping += t3 - t2
 
     finally:
         cleanup()
+        print(drawing / (sleeping + drawing))
 
