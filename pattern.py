@@ -4,7 +4,6 @@ import re
 import sys
 import math
 import random
-from functools import wraps
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 
 RAND = random.Random()
@@ -70,9 +69,9 @@ def ducklings(n, rand=RAND):
     yield [0] * n
 
 def rev(fn):
-    @wraps(fn)
     def _rev(n):
         return (reversed(x) for x in fn(n))
+    _rev.__name__ = fn.__name__ + ' reversed'
     return _rev
 
 
@@ -94,10 +93,8 @@ CMDS = {
 def main():
     parser = ArgumentParser(
         formatter_class=RawDescriptionHelpFormatter,
-        epilog='''\
-commands:
-  
-'''
+        epilog='commands:\n' + '\n'.join(
+            f'  {c}: {CMDS[c].__name__}' for c in CMDS)
     )
     parser.add_argument(
         'commands',
