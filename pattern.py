@@ -19,7 +19,7 @@ def sweep(n):
         yield [int(i == r) for i in range(n)]
     yield [0] * n
 
-def shadow(n):
+def ray(n):
     for r in range(n):
         yield [int(r <= i <= r*2) for i in range(n)]
     yield [0] * n
@@ -35,12 +35,12 @@ def wave(n):
 def hazard(n):
     for j in range(1, 5):
         yield [int(i % 8 < j) for i in range(n)]
-    for j in range(1, 25):
+    for j in range(1, 21):
         yield [int((i - j) % 8 < 4) for i in range(n)]
     for j in range(4):
-        yield [int(j < i % 8 < 4) for i in range(n)]
+        yield [int(j + 4 < i % 8 < 8) for i in range(n)]
 
-def static(n, rand=RAND):
+def noise(n, rand=RAND):
     # fade in
     for j in range(1, 6):
         yield [int(rand.random() < j / 12) for i in range(n)]
@@ -78,16 +78,17 @@ def rev(fn):
 
 CMDS = {
     'b': blink,
-    's': sweep,
-    'S': rev(sweep),
-    'a': shadow,
-    'A': rev(shadow),
-    'w': wave,
-    'W': rev(wave),
-    'h': hazard,
-    'H': rev(hazard),
     'd': ducklings,
     'D': rev(ducklings),
+    'h': hazard,
+    'H': rev(hazard),
+    'n': noise,
+    'r': ray,
+    'R': rev(ray),
+    's': sweep,
+    'S': rev(sweep),
+    'w': wave,
+    'W': rev(wave),
 }
 
 
@@ -131,10 +132,12 @@ def commands(cmds):
             ci = iter(re.split('(\d+)', cmd))
             c = next(ci)
             if c:
-                yield CMDS[c]
+                for ch in c:
+                    yield CMDS[ch]
             for n, c in zip(ci, ci):
                 for ni in range(int(n)):
-                    yield CMDS[c]
+                    for ch in c:
+                        yield CMDS[ch]
         repeat_group = 1
 
 
