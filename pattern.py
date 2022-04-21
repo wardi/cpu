@@ -4,6 +4,7 @@ import re
 import sys
 import math
 import random
+import struct
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 
 RAND = random.Random()
@@ -104,11 +105,19 @@ def main():
     )
     parser.add_argument('-l', '--leds', default=8, type=int)
     parser.add_argument('-b', '--bin', metavar='FILE', help='output binary data')
+    parser.add_argument('-f', '--bin-format', default='B', help='packed binary data format')
     args = parser.parse_args()
 
-    for fn in commands(args.commands):
-        for x in fn(args.leds):
-            print(''.join('<>' if i else '..' for i in x))
+    if args.bin:
+        with open(args.bin, 'wb') as f:
+            for fn in commands(args.commands):
+                for x in fn(args.leds):
+                    f.write(struct.pack(args.bin_format, sum(
+                        b * 2**i for i, b in enumerate(x))))
+    else:
+        for fn in commands(args.commands):
+            for x in fn(args.leds):
+                print(''.join('<>' if i else '..' for i in x))
 
 
 def commands(cmds):
