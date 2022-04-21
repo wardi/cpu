@@ -1,7 +1,11 @@
 #!/usr/bin/python3
 
+import re
+import sys
 import math
 import random
+from functools import wraps
+from argparse import ArgumentParser, RawDescriptionHelpFormatter
 
 RAND = random.Random()
 
@@ -65,25 +69,68 @@ def ducklings(n, rand=RAND):
                 pos[i] -= 1
     yield [0] * n
 
+def rev(fn):
+    @wraps(fn)
+    def _rev(n):
+        return (reversed(x) for x in fn(n))
+    return _rev
 
-LEDS = 28
-PROGRAM = (
-    blink,
-    blink,
-    blink,
-    sweep,
-    lambda n: (reversed(x) for x in sweep(n)),
-    shadow,
-    lambda n: (reversed(x) for x in shadow(n)),
-    wave,
-    lambda n: (reversed(x) for x in wave(n)),
-    hazard,
-    lambda n: (reversed(x) for x in hazard(n)),
-    static,
-    ducklings,
-)
+
+CMDS = {
+    'b': blink,
+    's': sweep,
+    'S': rev(sweep),
+    'a': shadow,
+    'A': rev(shadow),
+    'w': wave,
+    'W': rev(wave),
+    'h': hazard,
+    'H': rev(hazard),
+    'd': ducklings,
+    'D': rev(ducklings),
+}
+
+
+def main():
+    parser = ArgumentParser(
+        formatter_class=RawDescriptionHelpFormatter,
+        epilog='''\
+commands:
+  
+'''
+    )
+    parser.add_argument(
+        'commands',
+        metavar='CMDS',
+        nargs='+',
+        help='e.g. "10 5b3s h" will output 10 times: (5 blinks, 3 sweeps) then 1 hazard',
+    )
+    parser.add_argument('-l', '--leds', default=8, type=int)
+    parser.add_argument('-b', '--bin', metavar='FILE', help='output binary data')
+    args = parser.parse_args()
+
+    for fn in commands(args.commands):
+        for x in fn(args.leds):
+            print(''.join('<>' if i else '..' for i in x))
+
+
+def commands(cmds):
+    repeat_group = 1
+
+    for cmd in cmds:
+        if cmd.isnumeric():
+            repeat_group = int(cmd)
+            continue
+        for i in range(repeat_group):
+            ci = iter(re.split('(\d+)', cmd))
+            c = next(ci)
+            if c:
+                yield CMDS[c]
+            for n, c in zip(ci, ci):
+                for ni in range(int(n)):
+                    yield CMDS[c]
+        repeat_group = 1
+
 
 if __name__ == '__main__':
-    for fn in PROGRAM:
-        for x in fn(LEDS):
-            print(''.join('<>' if i else '..' for i in x))
+    main()
