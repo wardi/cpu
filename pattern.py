@@ -103,20 +103,20 @@ def main():
         nargs='+',
         help='e.g. "10 5b3s h" will output 10 times: (5 blinks, 3 sweeps) then 1 hazard',
     )
-    parser.add_argument('-l', '--leds', default=8, type=int)
-    parser.add_argument('-b', '--bin', metavar='FILE', help='output binary data')
-    parser.add_argument('-f', '--bin-format', default='B', help='packed binary data format')
+    parser.add_argument('-b', '--bits', default=8, type=int, help='bits in pattern [default: 8]')
+    parser.add_argument('-o', '--bin-output', metavar='FILE', help='output packed binary data to a file')
+    parser.add_argument('-f', '--bin-format', metavar='FMT', default='B', help='packed binary data format [default: B]')
     args = parser.parse_args()
 
-    if args.bin:
-        with open(args.bin, 'wb') as f:
+    if args.bin_output:
+        with open(args.bin_output, 'wb') as f:
             for fn in commands(args.commands):
                 for x in fn(args.leds):
                     f.write(struct.pack(args.bin_format, sum(
                         b * 2**i for i, b in enumerate(x))))
     else:
         for fn in commands(args.commands):
-            for x in fn(args.leds):
+            for x in fn(args.bits):
                 print(''.join('<>' if i else '..' for i in x))
 
 
