@@ -44,7 +44,7 @@ def noise(n, rand=RAND):
     # fade in
     for j in range(1, 6):
         yield [int(rand.random() < j / 12) for i in range(n)]
-    for j in range(24):
+    for j in range(26):
         yield [int(rand.random() < 0.5) for i in range(n)]
     # fade out
     for j in reversed(range(6)):
@@ -107,12 +107,16 @@ def main():
     parser.add_argument('-b', '--bits', default=8, type=int, help='bits in pattern [default: 8]')
     parser.add_argument('-o', '--bin-output', metavar='FILE', help='output packed binary data to a file')
     parser.add_argument('-f', '--bin-format', metavar='FMT', default='B', help='packed binary data format [default: B]')
+    parser.add_argument('-s', '--seed', metavar='NUM', type=int, help='seed for random patterns')
     args = parser.parse_args()
+
+    if args.seed:
+        RAND.seed(int(args.seed))
 
     if args.bin_output:
         with open(args.bin_output, 'wb') as f:
             for fn in commands(args.commands):
-                for x in fn(args.leds):
+                for x in fn(args.bits):
                     f.write(struct.pack(args.bin_format, sum(
                         b * 2**i for i, b in enumerate(x))))
     else:
