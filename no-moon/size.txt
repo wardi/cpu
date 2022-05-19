@@ -1,0 +1,21 @@
+original: 1280x720
+border: 88 top + bottom
+actual: 1280x544
+
+display screen:
+- 20x4 cells
+- 8x5 pixels per cell
+- 1 pixel space between
+
+32 + 3 = 35 pixel height
+35 / 544 * 1280 ~= 82 pixel width
+14 cell width = 14 * 5 + 13 = 83 pixels
+--> use a 14 x 4 cell "screen"
+
+ 01234567890123456789
+0[            ]excess
+1[            ].org/
+2[            ]nomoon
+3[            ]
+
+
