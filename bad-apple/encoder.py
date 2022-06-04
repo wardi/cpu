@@ -74,7 +74,7 @@ with open('video.bin', 'wb') as f:
     f.write(
         INI + # function set: initial setup
         HID + # hidden cursor
-        EI0 + # entry incrementing, no shift
+        EIN + # entry incrementing, no shift
         CLR
     )''')
 
