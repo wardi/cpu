@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 
 HELLO_EN = 'Hello World'
 HELLO_JP = 'ﾊﾛｰﾜｰﾙﾄﾞ'
