@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from RPi import GPIO
 import time
+import itertools
 
 from cmdconsts import *
 import hello
@@ -48,7 +49,7 @@ def wait():
 
 def command(b):
     wait()
-    GPIO.output(D_PINS, tuple((b >> j) & 1 for j in D_BITS))
+    GPIO.output(D_PINS, tuple((ord(b) >> j) & 1 for j in D_BITS))
     GPIO.output(RS, 0)
     GPIO.output(RW, 0)
     enable()
@@ -84,7 +85,8 @@ if __name__ == '__main__':
         jdx, jdy = hello.HELLO_JP_DIR
 
         for i in itertools.count():
-            bg = BG_PATTERNS[(i // 2) % len(BG_PATTERNS)] * 2
+            bg = hello.BG_PATTERNS[(i // 12) % len(hello.BG_PATTERNS)] * 2
+            bg = hello.BG_PATTERNS[0] * 2
             field = i % 2
             lang = ('EN', 'JP', None)[i % 3]
             if lang == 'EN':
@@ -94,7 +96,7 @@ if __name__ == '__main__':
                 write(bg[:x] + hello.HELLO_EN + bg[x + len(hello.HELLO_EN):])
                 if (edy > 0 and ey == HEIGHT - 1) or (edy < 0 and ey == 0):
                     edy = -edy
-                if (edx > 0 and ex + len(HELLO_EN) == WIDTH) or (edx < 0 and ex == 0):
+                if (edx > 0 and ex + len(hello.HELLO_EN) == WIDTH) or (edx < 0 and ex == 0):
                     edx = -edx
                 ex += edx
                 ey += edy
@@ -105,7 +107,7 @@ if __name__ == '__main__':
                 write(bg[:x] + hello.HELLO_JP + bg[x + len(hello.HELLO_JP):])
                 if (jdy > 0 and jy == HEIGHT - 1) or (jdy < 0 and jy == 0):
                     jdy = -jdy
-                if (jdx > 0 and jx + len(HELLO_JP) == WIDTH) or (jdx < 0 and jx == 0):
+                if (jdx > 0 and jx + len(hello.HELLO_JP) == WIDTH) or (jdx < 0 and jx == 0):
                     jdx = -jdx
                 jx += jdx
                 jy += jdy
