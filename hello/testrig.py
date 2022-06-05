@@ -20,7 +20,8 @@ E = 19
 PINS = (D0, D1, D2, D3, D4, D5, D6, D7, RS, RW, E)
 D_PINS = PINS[:8]
 D_BITS = tuple(range(8))
-READY_TIME = 0.00001
+#READY_TIME = 0.00001
+READY_TIME = 0.005
 
 def init():
     GPIO.setmode(GPIO.BOARD)
@@ -85,35 +86,33 @@ if __name__ == '__main__':
         jdx, jdy = hello.HELLO_JP_DIR
 
         for i in itertools.count():
-            bg = hello.BG_PATTERNS[(i // 24) % len(hello.BG_PATTERNS)] * 2
+            bg = hello.BG_PATTERNS[(i // 2) % len(hello.BG_PATTERNS)] * 2
             field = i % 2
-            lang = ('EN', 'JP', None)[i % 3]
-            if lang == 'EN':
+
+            if field == ey % 2:
                 x = ex
                 if ey > 1:
                     x += WIDTH
                 write(bg[:x] + hello.HELLO_EN + bg[x + len(hello.HELLO_EN):])
+            else:
+                x = jx
+                if jy > 1:
+                    x += WIDTH
+                write(bg[:x] + hello.HELLO_JP + bg[x + len(hello.HELLO_JP):])
+
+            if i % 12 == 11:
                 if (edy > 0 and ey == HEIGHT - 1) or (edy < 0 and ey == 0):
                     edy = -edy
                 if (edx > 0 and ex + len(hello.HELLO_EN) == WIDTH) or (edx < 0 and ex == 0):
                     edx = -edx
                 ex += edx
                 ey += edy
-            elif lang == 'JP':
-                x = jx
-                if jy > 1:
-                    x += WIDTH
-                write(bg[:x] + hello.HELLO_JP + bg[x + len(hello.HELLO_JP):])
                 if (jdy > 0 and jy == HEIGHT - 1) or (jdy < 0 and jy == 0):
                     jdy = -jdy
                 if (jdx > 0 and jx + len(hello.HELLO_JP) == WIDTH) or (jdx < 0 and jx == 0):
                     jdx = -jdx
                 jx += jdx
                 jy += jdy
-            else:
-                write(bg)
-            
-            time.sleep(0.1)
 
     finally:
         cleanup()
