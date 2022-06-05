@@ -15,9 +15,6 @@ ROM_A00_JP = {
     '￫': 0b01111110,
 }
 
-HELLO_EN_B = HELLO_EN.encode('ascii')
-HELLO_JP_B = bytes(ROM_A00_JP[c] for c in HELLO_JP)
-
 BG_PATTERNS = [
     '                    ',
     '  .   .   .   .   . ',
@@ -64,11 +61,15 @@ BG_PATTERNS = [
 # starting positions:
 
 #       01234567890123456789
-#   0 D Hello World,,,,,,,,,
-#   1 E ,,,,,,,,,,,,,,,,,,,,
-#   2 D ,,,,,,,,,,,,,,,,,,,,
-#   3 E ,,,,,,,,,ﾊﾛｰﾜｰﾙﾄﾞ,,,
+#   0 D Hello World.........
+#   1 E ....................
+#   2 D ....................
+#   3 E .........ﾊﾛｰﾜｰﾙﾄﾞ...
 
+HELLO_EN_POS = (0, 0)
+HELLO_EN_DIR = (1, 1)
+HELLO_JP_POS = (9, 3)
+HELLO_JP_DIR = (1, -1)
 
 # D-E field sequence:
 
@@ -81,3 +82,4 @@ BG_PATTERNS = [
 # D write hello (2), erase ﾊﾛｰ
 # E                  write ﾊﾛｰ (1)
 # ...
+
