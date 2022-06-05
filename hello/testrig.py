@@ -85,8 +85,7 @@ if __name__ == '__main__':
         jdx, jdy = hello.HELLO_JP_DIR
 
         for i in itertools.count():
-            bg = hello.BG_PATTERNS[(i // 12) % len(hello.BG_PATTERNS)] * 2
-            bg = hello.BG_PATTERNS[0] * 2
+            bg = hello.BG_PATTERNS[(i // 24) % len(hello.BG_PATTERNS)] * 2
             field = i % 2
             lang = ('EN', 'JP', None)[i % 3]
             if lang == 'EN':
