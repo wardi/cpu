@@ -1,3 +1,129 @@
+attempt 2
+
+
+microcode address bits [n][c][z] [ ][ ][ ][ ] [ ][s][s][s] [k][k][k][k] [k][k][k][k]
+microcode data bits [s'][s'][s'][rs] [o][o][o][o/~[addr] in]
+
+
+operations:				BUS IN	BUS OUT
+0: [addr] -> DDRAM			[addr]	DDRAM
+1: A -> DDRAM				A	DDRAM
+2: [addr] -> S				[addr]	S
+3: NOP
+4: [addr] -> X				[addr]	X
+5: DDRAM -> X				DDRAM	X
+6: [addr] -> Y, S:X:Y -> addr		[addr]	Y
+7: DDRAM -> Y, S:X:Y -> addr		DDRAM	Y
+-8-
+-9-
+10: [addr] -> A				[addr]	A
+11: DDRAM -> A,N,Z			DDRAM	A, N, Z
+-12-
+-13-
+-14-
+15: math				DDRAM	(A), C, N, Z
+    [addr]:0 ? subtraction : addition
+    [addr]:1 ? assign A : discard result
+    * A - DDRAM, RS=1 -> C,N,Z
+    * A + DDRAM, RS=1 -> A,C,N,Z
+    * A - DDRAM, RS=1 -> A,C,N,Z
+
+
+
+(cmds)		[addr] -> DDRAM, RS=0	EEPROM	DDRAM			command literal
+
+0x00	LDA #								load immediate
+ (1)		[addr] -> A		EEPROM	A
+
+0x03	WRC	A -> DDRAM, RS=0	A	LCD			write A as command
+0x09	WRD	A -> DDRAM, RS=1	A	LCD	RS		write A to DDRAM
+0x0a	RDS	DDRAM, RS=0 -> A,N,Z	LCD	A	   RW NZ	read status to A, update N, Z flags
+0x0b	RDD	DDRAM, RS=1 -> A,N,Z	LCD	A	RS RW NZ	read DDRAM to A, update N, Z flags
+
+0x11	CMP	A-DDRAM -> C,N,Z	LCD	ALU	     NZ SUB	compare DDRAM
+0x12	ADD	A+DDRAM -> A,C,N,Z	LCD	ALU	ALUO NZ		add DDRAM
+0x13	SUB	A-DDRAM -> A,C,N,Z	LCD	ALU	ALUO NZ SUB	subtract DDRAM
+
+0x30-7	JMP     [addr] -> S						jump immediate
+ (2)		[addr] -> X		EEPROM	X
+ (3)		[addr]:X -> addr	EEPROM	ADDR
+
+0x39	RET	DDRAM -> X		LCD	X			jump indirect
+ (4)	DDRAM:X -> addr		LCD	ADDR
+
+0x20-7	JN ##	if N = 1: [addr] -> S					jump if N = 1, state (2) else (5)
+0x28-f	JC ##	if C = 1: [addr] -> S					jump if C = 1, state (2) else (5)
+0xa8-f	JZ ##	if Z = 1: [addr] -> S					jump if Z = 1, state (2) else (5)
+0xb0-7	JP ##	if N = 0: [addr] -> S					jump if N = 0, state (2) else (5)
+0xb8-f	JNC ##	if C = 0: [addr] -> S					jump if C = 0, state (2) else (5)
+0xe8-f	JNZ ##	if Z = 0: [addr] -> S					jump if Z = 0, state (2) else (5)
+
+ (5)									do two nothings, state (6)
+ (6)									do nothing
+
+0x17	INP	buttons -> A,N,Z	BUTTONS	A	NZ		poll button inputs
+
+0x19	WRB #								write byte immediate
+ (7)		[addr] -> DDRAM		EEPROM	LCD	RS
+
+0x1a	S0								interact with screen 0
+0x1b	S1								interact with screen 1
+0x1d    S3								interact with sound device/input?
+
+-----  wishlist
+
+
+228	WRW ##								write word immediate
+ (8)		[addr] -> DDRAM		EEPROM	LCD	RS
+ (7)		[addr] -> DDRAM		EEPROM	LCD	RS
+
+229	ADD #								add immediate
+ (9)		A+[addr] -> A,C,N,Z	EEPROM	ALU	ALUO NZ
+230	SUB #								subtract immediate
+ (10)		A-[addr] -> A,C,N,Z	LCD	ALU	ALUO NZ SUB
+240	CMP #								compare immediate
+ (11)		A-DDRAM -> C,N,Z	LCD	ALU	     NZ SUB
+
+241	WRBN #								write byte if N = 1, state(7) else (6)
+242	WRBC #								write byte if C = 1, state(7) else (6)
+243	WRBZ #
+244	WRBP #
+245	WRBNC #
+246	WRBNZ #
+
+247	CMPN #
+248	CMPC #
+249	CMPZ #
+250	CMPP #
+251	CMPNC #
+252	CMPNZ #
+
+-----  unassigned wishlist
+
+WRWN
+WRWC
+WRWZ
+WRWP
+WRWNC
+WRWNZ
+
+ADDN
+ADDC
+ADDZ
+ADDP
+ADDNC
+ADDNZ
+SUBN
+SUBC
+SUBZ
+SUBP
+SUBNC
+SUBNZ
+
+
+
+attempt 1
+
 
 microcode address bits	[s][s][s][s][k][k][k][k][k][k][k][k][c][n][z]
 s=current (state) 0 is normal/command state
