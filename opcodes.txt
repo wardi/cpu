@@ -11,9 +11,9 @@ operations:				BUS IN	BUS OUT
 2: [addr] -> S				[addr]	S
 3: NOP
 4: [addr] -> X				[addr]	X
-5: DDRAM -> X				DDRAM	X
-6: [addr] -> Y, S:X:Y -> addr		[addr]	Y
-7: DDRAM -> Y, S:X:Y -> addr		DDRAM	Y
+5: DDRAM -> X, 0 -> S			DDRAM	X
+6: [addr] -> Y, Y:X:S -> addr		[addr]	Y
+7: DDRAM -> Y, Y:X:S -> addr		DDRAM	Y
 -8-
 -9-
 10: [addr] -> A				[addr]	A
@@ -46,10 +46,10 @@ operations:				BUS IN	BUS OUT
 
 0x30-7	JMP     [addr] -> S						jump immediate
  (2)		[addr] -> X		EEPROM	X
- (3)		[addr]:X -> addr	EEPROM	ADDR
+ (3)		[addr]:X:S -> addr	EEPROM	ADDR
 
-0x39	RET	DDRAM -> X		LCD	X			jump indirect
- (4)	DDRAM:X -> addr		LCD	ADDR
+0x39	RET	DDRAM -> X, 0 -> S	LCD	X			jump indirect
+ (4)	DDRAM:X:S -> addr		LCD	ADDR
 
 0x20-7	JN ##	if N = 1: [addr] -> S					jump if N = 1, state (2) else (5)
 0x28-f	JC ##	if C = 1: [addr] -> S					jump if C = 1, state (2) else (5)
