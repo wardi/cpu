@@ -9,3 +9,7 @@ video.enc.gz : no-moon-test.mov extract.py
 
 mnconsts.py : lookup_table.py
 	python lookup_table.py > $@
+
+.PHONY : flash
+flash : video.bin
+	../flash.sh -w video.bin
