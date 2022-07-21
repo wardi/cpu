@@ -7,9 +7,13 @@ video.py : video.enc.gz encoder.py
 video.enc.gz : no-moon-test.mov extract.py
 	python extract.py $< $@
 
-mnconsts.py : lookup_table.py
+nmconsts.py ltable.bin : lookup_table.py
 	python lookup_table.py > $@
 
 .PHONY : flash
 flash : video.bin
-	../flash.sh -w video.bin
+	../flash.sh -w $<
+
+.PHONY : flash-ltable
+flash-ltable : ltable.bin
+	../flash.sh -s -w $<
