@@ -12,10 +12,59 @@ display screen:
 14 cell width = 14 * 5 + 13 = 83 pixels
 --> use a 14 x 4 cell "screen"
 
+4183 frames
+
  01234567890123456789
 0[            ]excess
-1[            ].org/
+1[            ] .org/
 2[            ]nomoon
 3[            ]
 
 
+ 01234567890123456789
+0[            ]no cpu
+1[            ]
+2[            ] 512KB
+3[            ] flash
+
+
+ 01234567890123456789
+0[            ]14x4
+1[            ] chars
+2[            ]70x40
+3[            ]pixels
+
+
+ 01234567890123456789
+0[            ] only
+1[            ]  8
+2[            ] cgram
+3[            ] chars
+
+
+ 01234567890123456789
+0[            ]wookie
+1[            ]hard
+2[            ]to  :(
+3[            ]render
+
+
+ 01234567890123456789
+0[            ]that's
+1[            ]  no
+2[            ] moon
+3[            ]
+
+
+ 01234567890123456789
+0[            ]it's a
+1[            ] space
+2[            ]sta-
+3[            ]  tion
+
+
+ 01234567890123456789
+0[            ]   sub
+1[            ]  like
+2[            ] share
+3[            ]commnt

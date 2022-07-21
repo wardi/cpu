@@ -6,10 +6,10 @@ from itertools import zip_longest, repeat, cycle, islice
 
 SRC_FPS = 29.97
 EEPROM_SIZE = 512 * 1024 - 3  # init
-NUM_LOOKAHEAD_FRAMES = 3
-CLOSE_ENOUGH_PIXELS = 4
+NUM_LOOKAHEAD_FRAMES = 2
+CLOSE_ENOUGH_PIXELS = 0
 TRIM_START_FRAMES = 0
-TRIM_END_FRAMES = 0
+TRIM_END_FRAMES = 5
 
 DISPLAY_COLS = 20  # full screen width
 
@@ -48,11 +48,117 @@ def ovs(s):
     return [repr(bytes([b])) for b in s]
 
 output_override = {}
-#output_override.update({i: b for (i, b) in enumerate(
-#    ['E13'] + ovs(b'Bad') +
-#    ['D32'] + ovs(b'Apple'),
-#    start=35,
-#)})
+output_override.update({i: b for (i, b) in enumerate(
+    ['D14'] + ovs(b'excess') +
+    ['E14'] + ovs(b'.org/') +
+    ['D34'] + ovs(b'nomoon'),
+    start=2956,
+)})
+output_override.update({i: b for (i, b) in enumerate(
+    ['D14'] + ovs(b'no cpu') +
+    ['E14'] + ovs(b'      ') +
+    ['D34'] + ovs(b' 512KB') +
+    ['E34'] + ovs(b' flash'),
+    start=37763,
+)})
+output_override.update({i: b for (i, b) in enumerate(
+    ['D14'] + ovs(b'14x4  ') +
+    ['E14'] + ovs(b' chars') +
+    ['D34'] + ovs(b'70x40 ') +
+    ['E34'] + ovs(b'pixels'),
+    start=84308,
+)})
+output_override.update({i: b for (i, b) in enumerate(
+    ['D14'] + ovs(b' only ') +
+    ['E14'] + ovs(b'  8   ') +
+    ['D34'] + ovs(b' cgram') +
+    ['E34'] + ovs(b' chars'),
+    start=105510,
+)})
+output_override.update({i: b for (i, b) in enumerate(
+    ['D14'] + ovs(b'no cpu') +
+    ['E14'] + ovs(b'      ') +
+    ['D34'] + ovs(b' 512KB') +
+    ['E34'] + ovs(b' flash'),
+    start=143649,
+)})
+output_override.update({i: b for (i, b) in enumerate(
+    ['D14'] + ovs(b'wookie') +
+    ['E14'] + ovs(b'hard  ') +
+    ['D34'] + ovs(b'to  :(') +
+    ['E34'] + ovs(b'render'),
+    start=181412,
+)})
+output_override.update({i: b for (i, b) in enumerate(
+    ['D14'] + ovs(b'14x4  ') +
+    ['E14'] + ovs(b' chars') +
+    ['D34'] + ovs(b'70x40 ') +
+    ['E34'] + ovs(b'pixels'),
+    start=218699,
+)})
+output_override.update({i: b for (i, b) in enumerate(
+    ['D14'] + ovs(b' only ') +
+    ['E14'] + ovs(b'  8   ') +
+    ['D34'] + ovs(b' cgram') +
+    ['E34'] + ovs(b' chars'),
+    start=261704,
+)})
+output_override.update({i: b for (i, b) in enumerate(
+    ['D14'] + ovs(b"that's") +
+    ['E14'] + ovs(b'  no  ') +
+    ['D34'] + ovs(b' moon ') +
+    ['E34'] + ovs(b'      '),
+    start=288176,
+)})
+output_override.update({i: b for (i, b) in enumerate(
+    ['D14'] + ovs(b"it's a") +
+    ['E14'] + ovs(b' space') +
+    ['D34'] + ovs(b'sta-  ') +
+    ['E34'] + ovs(b'  tion'),
+    start=308625,
+)})
+output_override.update({i: b for (i, b) in enumerate(
+    ['D14'] + ovs(b'excess') +
+    ['E14'] + ovs(b'.org/ ') +
+    ['D34'] + ovs(b'nomoon') +
+    ['E34'] + ovs(b'      '),
+    start=336727,
+)})
+output_override.update({i: b for (i, b) in enumerate(
+    ['D14'] + ovs(b'no cpu') +
+    ['E14'] + ovs(b'      ') +
+    ['D34'] + ovs(b' 512KB') +
+    ['E34'] + ovs(b' flash'),
+    start=384150 + 77,
+)})
+output_override.update({i: b for (i, b) in enumerate(
+    ['D14'] + ovs(b'14x4  ') +
+    ['E14'] + ovs(b' chars') +
+    ['D34'] + ovs(b'70x40 ') +
+    ['E34'] + ovs(b'pixels'),
+    start=431949 + 2,
+)})
+output_override.update({i: b for (i, b) in enumerate(
+    ['D14'] + ovs(b' only ') +
+    ['E14'] + ovs(b'  8   ') +
+    ['D34'] + ovs(b' cgram') +
+    ['E34'] + ovs(b' chars'),
+    start=462435 + 39,
+)})
+output_override.update({i: b for (i, b) in enumerate(
+    ['D14'] + ovs(b'excess') +
+    ['E14'] + ovs(b'.org/ ') +
+    ['D34'] + ovs(b'nomoon') +
+    ['E34'] + ovs(b'      '),
+    start=494552 + 15,
+)})
+output_override.update({i: b for (i, b) in enumerate(
+    ['D14'] + ovs(b'   sub') +
+    ['E14'] + ovs(b'  like') +
+    ['D34'] + ovs(b' share') +
+    ['E34'] + ovs(b'commnt'),
+    start=523533 + 17,
+)})
 #output_override.update({i: b for (i, b) in enumerate(
 #    ['D08'] + ovs(b'~1.2 kbit/s\x7f') +  # ~ is → and \xf7 is ←
 #    ['E08'] + ovs(b'40x32 pixels') +
@@ -84,7 +190,7 @@ def w(x, comment=None):
     print(f'    f.write({x})' + (f' # {comment}' if comment else ''))
 
 display_pos = 0   #  0-13 row 1, 20-33 row 2, 40-53 row 3, 60-73 row 4,  80+ cgram
-display_pixels = bytearray(COLS * ROWS * LINES)
+display_pixels = bytearray([0x15] * COLS * ROWS * LINES)
 cg_pixels = bytearray([0x80] * CGRAM * LINES)  # 0x80 to force replacement of data
 cg_assign = {}  # position where cgram character appears -> cgram number, ordered
 bytes_sent = 0
@@ -449,7 +555,7 @@ while True:
     if not frame_pixels:
         break
     all_frames.append(frame_pixels)
-#all_frames = all_frames[TRIM_START_FRAMES:-TRIM_END_FRAMES]
+all_frames = all_frames[TRIM_START_FRAMES:-TRIM_END_FRAMES]
 num_src_frames = len(all_frames)
 all_frames.extend([frame_pixels] * NUM_LOOKAHEAD_FRAMES)
 
