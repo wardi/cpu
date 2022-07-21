@@ -173,6 +173,7 @@ output_override.update({i: b for (i, b) in enumerate(
 #    ['E28'] + ovs(b'   bad-apple'),
 #    start=29586,
 #)})
+output_override = {}
 
 
 print('''#!/usr/bin/env python3
@@ -457,11 +458,11 @@ def encode():
             here = cell(pos, future_pixels)
             if pixeldelta(here, cell(pos, display_pixels)) > CLOSE_ENOUGH_PIXELS:
                 # check that this cell doesn't go solid very soon afterwards
-                if not any(
-                        solid(cell(pos, all_frames[f]))
-                        for f in range(future + 1, future + 1 + NUM_LOOKAHEAD_FRAMES)
-                    ):
-                    break
+#                if not any(
+#                        solid(cell(pos, all_frames[f]))
+#                        for f in range(future + 1, future + 1 + NUM_LOOKAHEAD_FRAMES)
+#                    ):
+                break
         else:
 # if none choose the cell delta > 0 next in order
 # - if assigned (advance 7):
@@ -472,11 +473,11 @@ def encode():
                 here = cell(pos, future_pixels)
                 if pixeldelta(here, cell(pos, display_pixels)):
                     # check that this cell doesn't go solid very soon afterwards
-                    if not any(
-                            solid_exact(cell(pos, all_frames[f]))
-                            for f in range(future + 1, future + 1 + NUM_LOOKAHEAD_FRAMES)
-                        ):
-                        break
+#                    if not any(
+#                            solid_exact(cell(pos, all_frames[f]))
+#                            for f in range(future + 1, future + 1 + NUM_LOOKAHEAD_FRAMES)
+#                        ):
+                    break
             else:
 # if none emit NOP (advance 1)
                 yield sim('INI')  # stand-in for "NOP"
