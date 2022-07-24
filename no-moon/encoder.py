@@ -5,11 +5,12 @@ import gzip
 from itertools import zip_longest, repeat, cycle, islice
 
 SRC_FPS = 29.97
-EEPROM_SIZE = 512 * 1024 - 3  # init
+EEPROM_SIZE = 512 * 1024 - 4  # init
 NUM_LOOKAHEAD_FRAMES = 2
 CLOSE_ENOUGH_PIXELS = 0
 TRIM_START_FRAMES = 0
 TRIM_END_FRAMES = 5
+WIPE_END_BYTES = 10
 
 DISPLAY_COLS = 20  # full screen width
 
@@ -50,130 +51,104 @@ def ovs(s):
 output_override = {}
 output_override.update({i: b for (i, b) in enumerate(
     ['D14'] + ovs(b'excess') +
-    ['E14'] + ovs(b'.org/') +
-    ['D34'] + ovs(b'nomoon'),
-    start=2956,
+    ['E14'] + ovs(b' .org/') +
+    ['D34'] + ovs(b'nomoon') +
+    ['E34'] + ovs(b'      '),
+    start=3764 - 4045 + 4122,
 )})
 output_override.update({i: b for (i, b) in enumerate(
-    ['D14'] + ovs(b'no cpu') +
-    ['E14'] + ovs(b'      ') +
-    ['D34'] + ovs(b' 512KB') +
-    ['E34'] + ovs(b' flash'),
+    ['D14'] + ovs(b'      ') +
+    ['E14'] + ovs(b'  no  ') +
+    ['D34'] + ovs(b'  cpu ') +
+    ['E34'] + ovs(b'      '),
     start=37763,
 )})
 output_override.update({i: b for (i, b) in enumerate(
-    ['D14'] + ovs(b'14x4  ') +
-    ['E14'] + ovs(b' chars') +
-    ['D34'] + ovs(b'70x40 ') +
-    ['E34'] + ovs(b'pixels'),
-    start=84308,
-)})
-output_override.update({i: b for (i, b) in enumerate(
-    ['D14'] + ovs(b' only ') +
-    ['E14'] + ovs(b'  8   ') +
-    ['D34'] + ovs(b' cgram') +
-    ['E34'] + ovs(b' chars'),
-    start=105510,
-)})
-output_override.update({i: b for (i, b) in enumerate(
-    ['D14'] + ovs(b'no cpu') +
-    ['E14'] + ovs(b'      ') +
-    ['D34'] + ovs(b' 512KB') +
-    ['E34'] + ovs(b' flash'),
-    start=143649,
-)})
-output_override.update({i: b for (i, b) in enumerate(
-    ['D14'] + ovs(b'wookie') +
-    ['E14'] + ovs(b'hard  ') +
-    ['D34'] + ovs(b'to  :(') +
-    ['E34'] + ovs(b'render'),
-    start=181412,
-)})
-output_override.update({i: b for (i, b) in enumerate(
-    ['D14'] + ovs(b'14x4  ') +
-    ['E14'] + ovs(b' chars') +
-    ['D34'] + ovs(b'70x40 ') +
-    ['E34'] + ovs(b'pixels'),
-    start=218699,
-)})
-output_override.update({i: b for (i, b) in enumerate(
-    ['D14'] + ovs(b' only ') +
-    ['E14'] + ovs(b'  8   ') +
-    ['D34'] + ovs(b' cgram') +
-    ['E34'] + ovs(b' chars'),
-    start=261704,
-)})
-output_override.update({i: b for (i, b) in enumerate(
-    ['D14'] + ovs(b"that's") +
-    ['E14'] + ovs(b'  no  ') +
-    ['D34'] + ovs(b' moon ') +
+    ['D14'] + ovs(b'  no  ') +
+    ['E14'] + ovs(b'bitmap') +
+    ['D34'] + ovs(b' mode ') +
     ['E34'] + ovs(b'      '),
-    start=288176,
+    start=143900 - 154234 + 154269 # was start=84308,
 )})
 output_override.update({i: b for (i, b) in enumerate(
-    ['D14'] + ovs(b"it's a") +
-    ['E14'] + ovs(b' space') +
-    ['D34'] + ovs(b'sta-  ') +
-    ['E34'] + ovs(b'  tion'),
-    start=308625,
+    ['D14'] + ovs(b' only ') +
+    ['E14'] + ovs(b' eight') +
+    ['D34'] + ovs(b' cgram') +
+    ['E34'] + ovs(b' chars'),
+    start=181662 - 194705 + 194758 #start=105510,
 )})
+output_override.update({i: b for (i, b) in enumerate(
+    ['D14'] + ovs(b' 14x4 ') +
+    ['E14'] + ovs(b' char.') +
+    ['D34'] + ovs(b' video') +
+    ['E34'] + ovs(b' area '),
+    start=218923 - 234639 + 234670 #start=143649,
+)})
+output_override.update({i: b for (i, b) in enumerate(
+    ['D14'] + ovs(b' 70x32') +
+    ['E14'] + ovs(b' pixel') +
+    ['D34'] + ovs(b' video') +
+    ['E34'] + ovs(b' area '),
+    start=261955 - 280758 + 280827 #start=181412,
+)})
+output_override.update({i: b for (i, b) in enumerate(
+    ['D14'] + ovs(b'      ') +
+    ['E14'] + ovs(b'512 KB') +
+    ['D34'] + ovs(b' flash') +
+    ['E34'] + ovs(b'      '),
+    start=315274 - 337902 + 337954 #start=218699,
+)})
+output_override.update({i: b for (i, b) in enumerate(
+    ['D14'] + ovs(b' 256- ') +
+    ['E14'] + ovs(b' byte ') +
+    ['D34'] + ovs(b'lookup') +
+    ['E34'] + ovs(b' table'),
+    start=384903 - 412526 + 412599 #start=261704,
+)})
+#output_override.update({i: b for (i, b) in enumerate(
+#    ['D14'] + ovs(b"that's") +
+#    ['E14'] + ovs(b'  no  ') +
+#    ['D34'] + ovs(b' moon ') +
+#    ['E34'] + ovs(b'      '),
+#    start=288176,
+#)})
+#output_override.update({i: b for (i, b) in enumerate(
+#    ['D14'] + ovs(b"it's a") +
+#    ['E14'] + ovs(b' space') +
+#    ['D34'] + ovs(b'sta-  ') +
+#    ['E34'] + ovs(b'  tion'),
+#    start=308625,
+#)})
 output_override.update({i: b for (i, b) in enumerate(
     ['D14'] + ovs(b'excess') +
-    ['E14'] + ovs(b'.org/ ') +
+    ['E14'] + ovs(b' .org/') +
     ['D34'] + ovs(b'nomoon') +
     ['E34'] + ovs(b'      '),
-    start=336727,
+    start=432702 - 463754 + 463800 #start=336727,
 )})
-output_override.update({i: b for (i, b) in enumerate(
-    ['D14'] + ovs(b'no cpu') +
-    ['E14'] + ovs(b'      ') +
-    ['D34'] + ovs(b' 512KB') +
-    ['E34'] + ovs(b' flash'),
-    start=384150 + 77,
-)})
-output_override.update({i: b for (i, b) in enumerate(
-    ['D14'] + ovs(b'14x4  ') +
-    ['E14'] + ovs(b' chars') +
-    ['D34'] + ovs(b'70x40 ') +
-    ['E34'] + ovs(b'pixels'),
-    start=431949 + 2,
-)})
-output_override.update({i: b for (i, b) in enumerate(
-    ['D14'] + ovs(b' only ') +
-    ['E14'] + ovs(b'  8   ') +
-    ['D34'] + ovs(b' cgram') +
-    ['E34'] + ovs(b' chars'),
-    start=462435 + 39,
-)})
-output_override.update({i: b for (i, b) in enumerate(
-    ['D14'] + ovs(b'excess') +
-    ['E14'] + ovs(b'.org/ ') +
-    ['D34'] + ovs(b'nomoon') +
-    ['E34'] + ovs(b'      '),
-    start=494552 + 15,
-)})
+#output_override.update({i: b for (i, b) in enumerate(
+#    ['D14'] + ovs(b' only ') +
+#    ['E14'] + ovs(b'  8   ') +
+#    ['D34'] + ovs(b' cgram') +
+#    ['E34'] + ovs(b' chars'),
+#    start=462435 + 39,
+#)})
+#output_override.update({i: b for (i, b) in enumerate(
+#    ['D14'] + ovs(b'excess') +
+#    ['E14'] + ovs(b'.org/ ') +
+#    ['D34'] + ovs(b'nomoon') +
+#    ['E34'] + ovs(b'      '),
+#    start=494552 + 15,
+#)})
 output_override.update({i: b for (i, b) in enumerate(
     ['D14'] + ovs(b'   sub') +
     ['E14'] + ovs(b'  like') +
-    ['D34'] + ovs(b' share') +
-    ['E34'] + ovs(b'commnt'),
-    start=523533 + 17,
+    ['D33'] + ovs(b'  share') +
+    ['E32'] + ovs(b' comment') +
+    ['E00'] + ovs(b'excess.org  ') +
+    ['D20'] + ovs(b'   /nomoon '),
+    start=523784 - 561370 + 561402
 )})
-#output_override.update({i: b for (i, b) in enumerate(
-#    ['D08'] + ovs(b'~1.2 kbit/s\x7f') +  # ~ is → and \xf7 is ←
-#    ['E08'] + ovs(b'40x32 pixels') +
-#    ['D28'] + ovs(b'8 cgram chrs') +
-#    ['E28'] + ovs(b'HD44780 LCD'),
-#    start=13696,
-#)})
-#output_override.update({i: b for (i, b) in enumerate(
-#    ['D08'] + ovs(b'Bad Apple on') +
-#    ['E08'] + ovs(b'32K EEPROM  ') +
-#    ['D28'] + ovs(b' excess.org/') +
-#    ['E28'] + ovs(b'   bad-apple'),
-#    start=29586,
-#)})
-output_override = {}
 
 
 print('''#!/usr/bin/env python3
@@ -184,7 +159,8 @@ with open('video.bin', 'wb') as f:
     f.write(
         INI + # function set: initial setup
         HID + # hidden cursor
-        EIN # entry incrementing, no shift
+        EIN + # entry incrementing, no shift
+        INI  # first command after EIN seems to be getting garbled
     )''')
 
 def w(x, comment=None):
@@ -334,6 +310,11 @@ def sim(b, comment=None):
     if bytes_sent in output_override:
         assert b == 'INI', (bytes_sent, b, output_override[bytes_sent])
         w(output_override[bytes_sent], comment)
+        bytes_sent += 1
+
+    elif bytes_sent >= EEPROM_SIZE - WIPE_END_BYTES:
+        # XXX generated commands erase our text, prevent that
+        w('INI', 'wiped end bytes')
         bytes_sent += 1
 
     elif isinstance(b, bytes):  # literal byte
