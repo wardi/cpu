@@ -1,5 +1,3 @@
-CGDATA_FIRST = ord(b'`')  # 5-bit values start from this printable character
-
 CGTXT = {
     'up': [
         '    []          ',
@@ -65,7 +63,11 @@ CG = {}
 for i, (cgtitle, cgvalue) in enumerate(CGTXT.items()):
     CG[cgtitle] = f'CG{i}'
     for y in reversed(range(0, 16, 2)):
-        CGDATA.append(bytes([CGDATA_FIRST + sum(
-            2**j if v[y:y+2] == '[]' else 0
-            for j, v in enumerate(reversed(cgvalue))
-        )]))
+        CGDATA.append(
+            'B{:02d}'.format(
+                sum(
+                    2**j if v[y:y+2] == '[]' else 0
+                    for j, v in enumerate(reversed(cgvalue))
+                )
+            )
+        )
