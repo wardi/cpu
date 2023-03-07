@@ -57,17 +57,106 @@ CGTXT = {
     ]
 }
 
-CGDATA = []
-CG = {}
+CGGRIDTXT = {
+    'O..': [
+        '[][]            ',
+        '[][]            ',
+        '[][]            ',
+        '[][]            ',
+        '[][]            ',
+    ],
+    'OO.': [
+        '[][]  [][]      ',
+        '[][]  [][]      ',
+        '[][]  [][]      ',
+        '[][]  [][]      ',
+        '[][]  [][]      ',
+    ],
+    'OOO': [
+        '[][]  [][]  [][]',
+        '[][]  [][]  [][]',
+        '[][]  [][]  [][]',
+        '[][]  [][]  [][]',
+        '[][]  [][]  [][]',
+    ],
+    '.OO': [
+        '      [][]  [][]',
+        '      [][]  [][]',
+        '      [][]  [][]',
+        '      [][]  [][]',
+        '      [][]  [][]',
+    ],
+    '..O': [
+        '            [][]',
+        '            [][]',
+        '            [][]',
+        '            [][]',
+        '            [][]',
+    ],
+    'O.O': [
+        '[][]        [][]',
+        '[][]        [][]',
+        '[][]        [][]',
+        '[][]        [][]',
+        '[][]        [][]',
+    ],
+}
 
-for i, (cgtitle, cgvalue) in enumerate(CGTXT.items()):
-    CG[cgtitle] = f'CG{i}'
-    for y in reversed(range(0, 16, 2)):
-        CGDATA.append(
-            'B{:02d}'.format(
-                sum(
-                    2**j if v[y:y+2] == '[]' else 0
-                    for j, v in enumerate(reversed(cgvalue))
+INTRO = [
+    '.OOOOOOOOOO.',
+    '.OOO.....OOO',
+    '.OOOOOOOOOO.',
+    '.OOO...OOO..',
+    '.OOO.....OOO',
+    '............',
+    '.OOO.....OOO',
+    '..OOO...OOO.',
+    '....OOOOO...',
+    '.....OOO....',
+    '.....OOO....',
+    '............',
+    '.OOOOOOOOOOO',
+    '.....OOO....',
+    '.....OOO....',
+    '.....OOO....',
+    '.....OOO....',
+    '............',
+    '.OOO.....OOO',
+    '.OOO.....OOO',
+    '.OOOOOOOOOOO',
+    '.OOO.....OOO',
+    '.OOO.....OOO',
+    '............',
+    '.OOOO...OOOO',
+    '.OOOOO.OOOOO',
+    '.OOOOOOOOOOO',
+    '.OOO.OOO.OOO',
+    '.OOO.OOO.OOO',
+    '............',
+    '............',
+    '............',
+    '............',
+    '............',
+]
+
+def _load(txt):
+    '''rotate txt dict format into binary data and store mnemonic'''
+    mne = {}
+    data = []
+    for i, (cgtitle, cgvalue) in enumerate(txt.items()):
+        mne[cgtitle] = f'CG{i}'
+        for y in reversed(range(0, 16, 2)):
+            data.append(
+                'B{:02d}'.format(
+                    sum(
+                        2**j if v[y:y+2] == '[]' else 0
+                        for j, v in enumerate(reversed(cgvalue))
+                    )
                 )
             )
-        )
+    return mne, data
+
+CG, CGDATA = _load(CGTXT)
+
+CGGRID, CGGRIDDATA = _load(CGGRIDTXT)
+CGGRID['...'] = b' '
