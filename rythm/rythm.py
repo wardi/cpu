@@ -4,7 +4,7 @@ import sys
 import itertools
 
 import cmdconsts
-from cmdconsts import INI, HID, EIN, CLR, C00
+from cmdconsts import INI, HID, EIN, CLR, C00, D00
 from cgram import CGDATA, CG
 
 
@@ -32,6 +32,7 @@ out(CLR)
 out(C00)
 for mne in CGDATA:
     out(mnec(mne))
+out(D00)
 out(mnec(CG['up']))
 out(mnec(CG['dn']))
 out(mnec(CG['updn']))
