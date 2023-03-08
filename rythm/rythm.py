@@ -6,6 +6,7 @@ import itertools
 import cmdconsts
 from cmdconsts import *
 from cgram import CGDATA, CG, CGGRID, CGGRIDDATA, INTRO
+from song import SEQ
 
 
 ROM_SIZE = 512 * 1024
@@ -80,10 +81,8 @@ dissolve = [
     [C20, C30, C40, C50],
     [C06, C16, C26, C56],
     [C13, C23, C33],
-    [C21, C31],
-    [C41, C51],
-    [C07, C17],
-    [C27, C57],
+    [C21, C31, C41, C51],
+    [C07, C17, C27, C57],
 ]
 def dis(d):
     for di in d:
@@ -98,21 +97,37 @@ for d in dissolve[:-1]:
 dis(dissolve[-1])
 clr()
 
-
-out(INI * (ROM_SIZE - out.written))
-sys.exit(0)
-
+# GAME
 out(C00)
 for mne in CGDATA:
     out(mnec(mne))
-out(D00)
-out(mnec(CG['up']))
-out(mnec(CG['dn']))
-out(mnec(CG['updn']))
-out(mnec(CG['lf']))
-out(mnec(CG['rt']))
-out(mnec(CG['up']))
-out(mnec(CG['b']))
-out(mnec(CG['a']))
-out(mnec(CG['ba']))
+
+for bar in SEQ:
+    tempo = out.written
+    p0, p1, p2, p3 = top()
+    out(mnec(p0))
+    out(mnec(CG['lf'] if 'L' in bar else b' '))
+    out(mnec(p1))
+    if 'U' in bar:
+        out(mnec(CG['updn' if 'D' in bar else 'up']))
+    else:
+        out(mnec(CG['dn']) if 'D' in bar else b' ')
+    out(mnec(p2))
+    out(mnec(CG['rt'] if 'R' in bar else b' '))
+    out(mnec(p3))
+    if 'B' in bar:
+        out(mnec(CG['ba' if 'A' in bar else 'b']))
+    else:
+        out(mnec(CG['a']) if 'A' in bar else b' ')
+    for pos in bottom():
+        out(mnec(pos))
+        out(b' ')
+    down()
+    assert out.written - tempo == 17
+
+
+
+
+out(INI * (ROM_SIZE - out.written))
+sys.exit(0)
 
