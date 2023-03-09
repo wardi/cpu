@@ -5,7 +5,7 @@ import itertools
 
 import cmdconsts
 from cmdconsts import *
-from cgram import CGDATA, CG, CGGRID, CGGRIDDATA, INTRO
+from cgram import CGDATA, CG, CGINTRODATA, CGINTRO
 from song import SEQ
 
 
@@ -64,37 +64,15 @@ clr()
 
 # INTRO
 out(C00)
-for mne in CGGRIDDATA:
+for mne in CGINTRODATA:
     out(mnec(mne))
 
-for itxt in INTRO:
-    for pos, tri in zip(bottom(), (itxt[:3], itxt[3:6], itxt[6:9], itxt[9:])):
-        out(mnec(pos))
-        out(mnec(CGGRID[tri]))
-    for pos in top():
-        out(mnec(pos))
-        out(b' ')
-    up()
+out(D25)
+for ch in 'RrYyTyHhMh':
+    out(mnec(CGINTRO[ch]))
 
-# DISSOLVE (specific to CGGRID definition)
-dissolve = [
-    [C20, C30, C40, C50],
-    [C06, C16, C26, C56],
-    [C13, C23, C33],
-    [C21, C31, C41, C51],
-    [C07, C17, C27, C57],
-]
-def dis(d):
-    for di in d:
-        out(di)
-        out(B00)
-for d in dissolve[:-1]:
-    dis(d)
-    for pos in top():
-        out(mnec(pos))
-        out(b' ')
-    up()
-dis(dissolve[-1])
+for i in range(17 * 4):
+    out(INI)
 clr()
 
 # GAME
