@@ -6,6 +6,18 @@ usage:
 overwrites ltable.bin
 '''
 
+additional_pins = {
+    8: 'RT',
+    9: 'LF',
+    10: 'UP',
+    11: 'DN',
+    13: 'B',
+    14: 'A',
+}
+
+inputs = {i: 2**pin for pin, i in additional_pins.items()}
+
+
 # byte order from top->bottom, left->right
 # (mnemonic:)hex-value
 hex_map = """
@@ -34,11 +46,19 @@ for i, r in enumerate(rows):
     cells = r.split()
     assert len(cells) == 16, f'Row {i} should have 16 cells: {cells}'
 
-columns = zip(*(r.split() for r in rows))
-
 with open('ltable.bin', 'wb') as f:
-    for i, cell in enumerate(cell for col in columns for cell in col):
-        mnemonic, sep, code = cell.rpartition(':')
-        if sep:
-           print(rf'{mnemonic} = b"\x{i:02x}"')
-        f.write(bytes([int(code, 16)]))
+    for page in range(0, 2 ** max(additional_pins), 256):
+        columns = zip(*(r.split() for r in rows))
+        for i, cell in enumerate(cell for col in columns for cell in col):
+            mnemonic, sep, code = cell.rpartition(':')
+            if not page and sep:
+               print(rf'{mnemonic} = b"\x{i:02x}"')
+
+            code = int(code, 16)
+            if mnemonic.startswith('X'):
+                if page & inputs[mnemonic[1:]]:
+                    code |= 0x40
+            elif mnemonic.startswith('Y'):
+                if not (page & inputs[mnemonic[1:]]):
+                    code |= 0x40
+            f.write(bytes([code]))
