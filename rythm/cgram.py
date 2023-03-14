@@ -118,11 +118,11 @@ CGINTROTXT = {
 
 
 def _load(txt):
-    '''rotate txt dict format into binary data and store mnemonic'''
-    mne = {}
+    '''rotate txt dict format into binary data and store opcode'''
+    op = {}
     data = []
     for i, (cgtitle, cgvalue) in enumerate(txt.items()):
-        mne[cgtitle] = f'CG{i}'
+        op[cgtitle] = f'CG{i}'
         for y in reversed(range(0, 16, 2)):
             data.append(
                 'B{:02d}'.format(
@@ -132,7 +132,7 @@ def _load(txt):
                     )
                 )
             )
-    return mne, data
+    return op, data
 
 CG, CGDATA = _load(CGTXT)
 

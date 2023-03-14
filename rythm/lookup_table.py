@@ -19,7 +19,7 @@ inputs = {i: 2**pin for pin, i in additional_pins.items()}
 
 
 # byte order from top->bottom, left->right
-# (mnemonic:)hex-value
+# (opcode:)hex-value
 hex_map = """
     1 XUP:1 B00:1     1 C00:0 C20:0 C40:0 C60:0 D00:0 D16:0 D32:0 B16:1 E00:0 E16:0 E32:0 1
 CLR:0 XDN:1 B01:1     1 C01:0 C21:0 C41:0 C61:0 D01:0 D17:0 D33:0 B17:1 E01:0 E17:0 E33:0 1
@@ -50,15 +50,15 @@ with open('ltable.bin', 'wb') as f:
     for page in range(0, 2 ** max(additional_pins), 256):
         columns = zip(*(r.split() for r in rows))
         for i, cell in enumerate(cell for col in columns for cell in col):
-            mnemonic, sep, code = cell.rpartition(':')
+            opcode, sep, code = cell.rpartition(':')
             if not page and sep:
-               print(rf'{mnemonic} = b"\x{i:02x}"')
+               print(rf'{opcode} = b"\x{i:02x}"')
 
             code = int(code, 16)
-            if mnemonic.startswith('X'):
-                if page & inputs[mnemonic[1:]]:
+            if opcode.startswith('X'):
+                if page & inputs[opcode[1:]]:
                     code |= 0x40
-            elif mnemonic.startswith('Y'):
-                if not (page & inputs[mnemonic[1:]]):
+            elif opcode.startswith('Y'):
+                if not (page & inputs[opcode[1:]]):
                     code |= 0x40
             f.write(bytes([code]))

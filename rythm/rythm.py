@@ -23,8 +23,9 @@ def out(b):
     out.written += len(b)
 out.written = 0
 
-def mnec(mne):
-    return mne if isinstance(mne, bytes) else getattr(cmdconsts, mne)
+def opx(op):
+    '''expand opcode to byte'''
+    return op if isinstance(op, bytes) else getattr(cmdconsts, op)
 
 def _scroll(delta):
     assert delta in (-1, 1)
@@ -64,12 +65,12 @@ clr()
 
 # INTRO
 out(C00)
-for mne in CGINTRODATA:
-    out(mnec(mne))
+for op in CGINTRODATA:
+    out(opx(op))
 
 out(D25)
 for ch in 'RrYyTyHhMh':
-    out(mnec(CGINTRO[ch]))
+    out(opx(CGINTRO[ch]))
 
 for i in range(17 * 4):
     out(INI)
@@ -77,28 +78,28 @@ clr()
 
 # GAME
 out(C00)
-for mne in CGDATA:
-    out(mnec(mne))
+for op in CGDATA:
+    out(opx(op))
 
 for bar in SEQ:
     tempo = out.written
     p0, p1, p2, p3 = top()
-    out(mnec(p0))
-    out(mnec(CG['lf'] if 'L' in bar else b' '))
-    out(mnec(p1))
+    out(opx(p0))
+    out(opx(CG['lf'] if 'L' in bar else b' '))
+    out(opx(p1))
     if 'U' in bar:
-        out(mnec(CG['updn' if 'D' in bar else 'up']))
+        out(opx(CG['updn' if 'D' in bar else 'up']))
     else:
-        out(mnec(CG['dn']) if 'D' in bar else b' ')
-    out(mnec(p2))
-    out(mnec(CG['rt'] if 'R' in bar else b' '))
-    out(mnec(p3))
+        out(opx(CG['dn']) if 'D' in bar else b' ')
+    out(opx(p2))
+    out(opx(CG['rt'] if 'R' in bar else b' '))
+    out(opx(p3))
     if 'B' in bar:
-        out(mnec(CG['ba' if 'A' in bar else 'b']))
+        out(opx(CG['ba' if 'A' in bar else 'b']))
     else:
-        out(mnec(CG['a']) if 'A' in bar else b' ')
+        out(opx(CG['a']) if 'A' in bar else b' ')
     for pos in bottom():
-        out(mnec(pos))
+        out(opx(pos))
         out(b' ')
     down()
     assert out.written - tempo == 17
