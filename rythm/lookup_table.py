@@ -47,7 +47,7 @@ for i, r in enumerate(rows):
     assert len(cells) == 16, f'Row {i} should have 16 cells: {cells}'
 
 with open('ltable.bin', 'wb') as f:
-    for page in range(0, 2 ** max(additional_pins), 256):
+    for page in range(0, 2 ** (max(additional_pins) + 1), 256):
         columns = zip(*(r.split() for r in rows))
         for i, cell in enumerate(cell for col in columns for cell in col):
             opcode, sep, code = cell.rpartition(':')
