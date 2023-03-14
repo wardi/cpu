@@ -106,7 +106,10 @@ out(C00)
 for op in CGDATA:
     out(opx(op))
 
-for bar in SEQ:
+# shifted copy of sequence for what is scrolling off the screen
+ESEQ = [''] * (WIDTH) + SEQ
+
+for i, bar in enumerate(SEQ, 1):
     tempo = out.written
     p0, p1, p2, p3 = top()
     out(opx(p0))
@@ -123,11 +126,18 @@ for bar in SEQ:
         out(opx(CG['ba' if 'A' in bar else 'b']))
     else:
         out(opx(CG['a']) if 'A' in bar else b' ')
-    for pos in bottom():
+
+    b0, b1, b2, b3 = bottom()
+    for pos, button in zip((b0, b1, b1, b2, b3, b3), 'LUDRBA'):
         out(opx(pos))
-        out(b' ')
+        if button in ESEQ[i]:
+            out(opx('Y' + button))
+        elif button not in ESEQ[i - 1] and button not in ESEQ[i + 1]:
+            out(opx('X' + button))
+        else:
+            out(b' ')
     down()
-    assert out.written - tempo == 17
+    assert out.written - tempo == 21
 
 
 
