@@ -23,15 +23,19 @@ def note_iter(track):
             notes.add(msg.note)
     yield notes
 
-for t1, t2 in itertools.zip_longest(
+for i, (t1, t2) in enumerate(itertools.zip_longest(
         note_iter(mid.tracks[1]),
         note_iter(mid.tracks[2]),
         fillvalue=set(),
-    ):
+    )):
     print(
-        '#' + ''.join(
-            '1' if i in t1 else '2' if i in t2 else ' '
-            for i in range(MIN_NOTE, MAX_NOTE + 1)
+        (
+            '#' + ''.join(
+                '1' if i in t1 else '2' if i in t2 else ' '
+                for i in range(MIN_NOTE, MAX_NOTE + 1)
+            ) + (
+                f' #{i // 8 + 1}' if i % 8 == 0 else ''
+            )
         ).rstrip()
     )
 
