@@ -65,14 +65,39 @@ clr()
 
 # INTRO
 out(C00)
-for op in CGINTRODATA:
+for op in CGINTRODATA[:16]:
     out(opx(op))
-
 out(D25)
-for ch in 'RrYyTyHhMh':
+for ch in 'Rr':
     out(opx(CGINTRO[ch]))
 
-for i in range(17 * 4):
+out(C20)
+for op in CGINTRODATA[16:32]:
+    out(opx(op))
+out(D27)
+for ch in 'Yy':
+    out(opx(CGINTRO[ch]))
+
+out(C40)
+for op in CGINTRODATA[32:48]:
+    out(opx(op))
+out(D29)
+for ch in 'Ty':
+    out(opx(CGINTRO[ch]))
+
+out(C60)
+for op in CGINTRODATA[48:64]:
+    out(opx(op))
+out(D31)
+for ch in 'Hh':
+    out(opx(CGINTRO[ch]))
+for i in range(17):
+    out(INI)
+for ch in 'Mh':
+    out(opx(CGINTRO[ch]))
+
+# pause
+for i in range(17 * 3):
     out(INI)
 clr()
 
