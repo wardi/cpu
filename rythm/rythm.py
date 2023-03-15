@@ -107,7 +107,7 @@ for op in CGDATA:
     out(opx(op))
 
 # shifted copy of sequence for what is scrolling off the screen
-ESEQ = [''] * (WIDTH) + SEQ
+ESEQ = [''] * (WIDTH + 1) + SEQ
 
 for i, bar in enumerate(SEQ, 1):
     tempo = out.written
