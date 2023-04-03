@@ -1,21 +1,30 @@
 import numpy as np
 from skimage.segmentation import flood_fill
 
-def generate(width, height):
+
+def box(width, height):
     arr = np.zeros((height, width), dtype=np.uint8)
     # walls
-    arr[0] = 9
-    arr[-1] = 9
-    arr[..., 0] = 9
-    arr[..., -1] = 9
-    locs = np.swapaxes(np.where(arr == 0), 0, 1)
-    # start/end
+    arr[0] = 1
+    arr[-1] = 1
+    arr[..., 0] = 1
+    arr[..., -1] = 1
     start = (0, 1)
     end = (-1, -2)
-    arr[start] = 0
-    arr[end] = 0
+    arr[start] = 2
+    arr[end] = 2
+    return arr
 
-    np.random.shuffle(locs)
+
+def ant_nest(arr, generator=None):
+    if not generator:
+        generator = np.random.default_rng()
+
+    locs = np.swapaxes(np.where(arr == 0), 0, 1)
+    generator.shuffle(locs)
+
+    start = next(zip(*np.where(arr == 2)))
+    arr[arr == 2] = 0
 
     for lc in locs:
         lc = tuple(lc)
@@ -51,5 +60,6 @@ def braillepixels(a):
     return braille
 
 
-for p in braillepixels(generate(100, 100)):
-    print(p)
+if __name__ == '__main__':
+    for l in braillepixels(ant_nest(box(60,60), np.random.default_rng(42))):
+        print(l)
