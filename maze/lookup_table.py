@@ -24,6 +24,11 @@ states = {i: 2**pin for pin, i in additional_pins.items() if len(i) == 2}
 
 # byte order from top->bottom, left->right
 # (opcode:)hex-value
+
+# 80 -> RS=1
+# 40 -> no E on /clk
+# 00-07 -> next state is 0-7
+
 hex_map = """
     80 JM0:41 B00:80     80 C00:00 80 80 80 D00:00 D16:00 D32:00 B16:80 E00:00 E16:00 E32:00 80
 CLR:00 JM1:41 B01:80     80     80 80 80 80 D01:00 D17:00 D33:00 B17:80 E01:00 E17:00 E33:00 80
