@@ -69,8 +69,8 @@ with open('ltable.bin', 'wb') as f:
             elif state & states['S2']:
                 # state 4+: NOP and next is state +1 (mod 8)
                 state_num = 4
-                state_num |= 1 if state & states['S01'] else 0
-                state_num |= 2 if state & states['S02'] else 0
+                state_num |= 1 if state & states['S1'] else 0
+                state_num |= 2 if state & states['S2'] else 0
                 code = 0x40 + ((state_num + 1) & 7)
             else:
                 opcode, sep, code = cell.rpartition(':')

@@ -38,7 +38,7 @@ def opx(op):
 out(INI)
 out(HID)
 out(EIN)
-clr()
+out(CLR)
 
 # INTRO
 out(C00)
@@ -74,7 +74,7 @@ for ch in 'Ez':
 loop = label()
 
 jmp(loop)
-clr()
+
 
 # TBD: GAME
 
