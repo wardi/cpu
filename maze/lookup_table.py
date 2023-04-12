@@ -59,16 +59,28 @@ with open('ltable.bin', 'wb') as f:
     for page in range(0, 2 ** (max(additional_pins) + 1), 256):
         columns = zip(*(r.split() for r in rows))
         for i, cell in enumerate(cell for col in columns for cell in col):
-            opcode, sep, code = cell.rpartition(':')
-            if not page and sep:
-               print(rf'{opcode} = b"\x{i:02x}"')
+            state = page & sum(states.values())
+            if state == states['S0']:
+                # state 1: NOP and next is state 2
+                code = 0x42
+            elif state == states['S1']:
+                # state 2: NOP and next is state 3
+                code = 0x43
+            elif state & states['S2']:
+                # state 4+: NOP and next is state +1 (mod 8)
+                state_num = 4
+                state_num |= 1 if state & states['S01'] else 0
+                state_num |= 2 if state & states['S02'] else 0
+                code = 0x40 + ((state_num + 1) & 7)
+            else:
+                opcode, sep, code = cell.rpartition(':')
+                if not page and sep:
+                   print(rf'{opcode} = b"\x{i:02x}"')
 
-            code = int(code, 16)
-            if opcode.startswith('X'):
-                # inputs are active low
-                if not (page & inputs[opcode[1:]]):
-                    code |= 0x40
-            elif opcode.startswith('Y'):
-                if page & inputs[opcode[1:]]:
-                    code |= 0x40
+                code = int(code, 16)
+                if opcode.startswith('HX'):
+                    # inputs are active low
+                    if not (page & inputs[opcode[2:]]):
+                        # replace with NOP when input active
+                        code == 0x40
             f.write(bytes([code]))
