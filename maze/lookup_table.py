@@ -26,26 +26,26 @@ states = {i: 2**pin for pin, i in additional_pins.items() if len(i) == 2}
 # (opcode:)hex-value
 
 # 80 -> RS=1
-# 40 -> no E on /clk
+# 40 -> E on /clk
 # 00-07 -> next state is 0-7
 
 hex_map = """
-    80 JM0:41 B00:80     80 C00:00 80 80 80 D00:00 D16:00 D32:00 B16:80 E00:00 E16:00 E32:00 80
-CLR:00 JM1:41 B01:80     80     80 80 80 80 D01:00 D17:00 D33:00 B17:80 E01:00 E17:00 E33:00 80
-HOM:00 JM2:41 B02:80     80     80 80 80 80 D02:00 D18:00 D34:00 B18:80 E02:00 E18:00 E34:00 80
-JM3:41   R:00 B03:80     80     80 80 80 80 D03:00 D19:00 D35:00 B19:80 E03:00 E19:00 E35:00 80
-CG4:80 JM4:41 B04:80     80     80 80 80 80 D04:00 D20:00 D36:00 B20:80 E04:00 E20:00 E36:00 80
-JM5:41   L:00 B05:80     80     80 80 80 80 D05:00 D21:00 D37:00 B21:80 E05:00 E21:00 E37:00 80
-EIN:00 JM6:41 B06:80     80     80 80 80 80 D06:00 D22:00 D38:00 B22:80 E06:00 E22:00 E38:00 80
-    80 JM7:41 B07:80     80     80 80 80 80 D07:00 D23:00 D39:00 B23:80 E07:00 E23:00 E39:00 80
-CG0:80  SR:00 B08:80     80     80 80 80 80 D08:00 D24:00     80 B24:80 E08:00 E24:00     80 80
-CG1:80 HXU:44 B09:80     80     80 80 80 80 D09:00 D25:00     80 B25:80 E09:00 E25:00     80 80
-CG2:80 HXD:44 B10:80     80     80 80 80 80 D10:00 D26:00     80 B26:80 E10:00 E26:00     80 80
-CG3:80 HXL:44 B11:80 INI:00     80 80 80 80 D11:00 D27:00     80 B27:80 E11:00 E27:00     80 80
-HID:00  SL:00 B12:80     80     80 80 80 80 D12:00 D28:00     80 B28:80 E12:00 E28:00     80 80
-CG5:80 HXR:44 B13:80     80     80 80 80 80 D13:00 D29:00     80 B29:80 E13:00 E29:00     80 80
-CG6:80 HXB:44 B14:80     80     80 80 80 80 D14:00 D30:00     80 B30:80 E14:00 E30:00     80 80
-CG7:80 HXA:44 B15:80     80     80 80 80 80 D15:00 D31:00     80 B31:80 E15:00 E31:00     80 80
+    C0 JM0:01 B00:C0     C0 C00:40 C0 C0 C0 D00:40 D16:40 D32:40 B16:C0 E00:40 E16:40 E32:40 C0
+CLR:40 JM1:01 B01:C0     C0     C0 C0 C0 C0 D01:40 D17:40 D33:40 B17:C0 E01:40 E17:40 E33:40 C0
+HOM:40 JM2:01 B02:C0     C0     C0 C0 C0 C0 D02:40 D18:40 D34:40 B18:C0 E02:40 E18:40 E34:40 C0
+JM3:01   R:40 B03:C0     C0     C0 C0 C0 C0 D03:40 D19:40 D35:40 B19:C0 E03:40 E19:40 E35:40 C0
+CG4:C0 JM4:01 B04:C0     C0     C0 C0 C0 C0 D04:40 D20:40 D36:40 B20:C0 E04:40 E20:40 E36:40 C0
+JM5:01   L:40 B05:C0     C0     C0 C0 C0 C0 D05:40 D21:40 D37:40 B21:C0 E05:40 E21:40 E37:40 C0
+EIN:40 JM6:01 B06:C0     C0     C0 C0 C0 C0 D06:40 D22:40 D38:40 B22:C0 E06:40 E22:40 E38:40 C0
+    C0 JM7:01 B07:C0     C0     C0 C0 C0 C0 D07:40 D23:40 D39:40 B23:C0 E07:40 E23:40 E39:40 C0
+CG0:C0  SR:40 B08:C0     C0     C0 C0 C0 C0 D08:40 D24:40     C0 B24:C0 E08:40 E24:40     C0 C0
+CG1:C0 HXU:04 B09:C0     C0     C0 C0 C0 C0 D09:40 D25:40     C0 B25:C0 E09:40 E25:40     C0 C0
+CG2:C0 HXD:04 B10:C0     C0     C0 C0 C0 C0 D10:40 D26:40     C0 B26:C0 E10:40 E26:40     C0 C0
+CG3:C0 HXL:04 B11:C0 INI:40     C0 C0 C0 C0 D11:40 D27:40     C0 B27:C0 E11:40 E27:40     C0 C0
+HID:40  SL:40 B12:C0     C0     C0 C0 C0 C0 D12:40 D28:40     C0 B28:C0 E12:40 E28:40     C0 C0
+CG5:C0 HXR:04 B13:C0     C0     C0 C0 C0 C0 D13:40 D29:40     C0 B29:C0 E13:40 E29:40     C0 C0
+CG6:C0 HXB:04 B14:C0     C0     C0 C0 C0 C0 D14:40 D30:40     C0 B30:C0 E14:40 E30:40     C0 C0
+CG7:C0 HXA:04 B15:C0     C0     C0 C0 C0 C0 D15:40 D31:40     C0 B31:C0 E15:40 E31:40     C0 C0
 """
 
 rows = hex_map.strip().split('\n')
@@ -62,16 +62,19 @@ with open('ltable.bin', 'wb') as f:
             state = page & sum(states.values())
             if state == states['S0']:
                 # state 1: NOP and next is state 2
-                code = 0x42
+                code = 0x02
             elif state == states['S1']:
                 # state 2: NOP and next is state 3
-                code = 0x43
+                code = 0x03
+            elif state == states['S0'] | states['S1']:
+                # state 3: NOP and next is state 0
+                code = 0x00
             elif state & states['S2']:
                 # state 4+: NOP and next is state +1 (mod 8)
                 state_num = 4
-                state_num |= 1 if state & states['S1'] else 0
-                state_num |= 2 if state & states['S2'] else 0
-                code = 0x40 + ((state_num + 1) & 7)
+                state_num |= 1 if state & states['S0'] else 0
+                state_num |= 2 if state & states['S1'] else 0
+                code = 0x00 + ((state_num + 1) & 7)
             else:
                 opcode, sep, code = cell.rpartition(':')
                 if not page and sep:
@@ -82,5 +85,5 @@ with open('ltable.bin', 'wb') as f:
                     # inputs are active low
                     if not (page & inputs[opcode[2:]]):
                         # replace with NOP when input active
-                        code == 0x40
+                        code == 0x00
             f.write(bytes([code]))

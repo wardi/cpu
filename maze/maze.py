@@ -36,10 +36,11 @@ def opx(op):
 
 # INIT
 out(INI)
+out(INI)
 out(HID)
 out(EIN)
 out(CLR)
-
+'''
 # INTRO
 out(C00)
 for op in CGINTRODATA:
@@ -68,11 +69,17 @@ for ch in 'Mm':
 out(D11)
 for ch in 'Ez':
     out(opx(CGINTRO[ch]))
-
+'''
 
 # pause
 loop = label()
-
+out(b'/')
+out(HXB)
+jmp(loop)
+loop2 = label()
+out(b'!')
+out(HXA)
+jmp(loop2)
 jmp(loop)
 
 
