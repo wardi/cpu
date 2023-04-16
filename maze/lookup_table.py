@@ -25,9 +25,9 @@ states = {i: 2**pin for pin, i in additional_pins.items() if len(i) == 2}
 # byte order from top->bottom, left->right
 # (opcode:)hex-value
 
-# 80 -> RS=1
-# 40 -> E on /clk
-# 00-07 -> next state is 0-7
+# 0x80 -> RS=1
+# 0x40 -> E on /clk
+# 0x00-07 -> next state is 0-7
 
 hex_map = """
     C0 JM0:01 B00:C0     C0 C00:40 C0 C0 C0 D00:40 D16:40 D32:40 B16:C0 E00:40 E16:40 E32:40 C0
@@ -59,22 +59,20 @@ with open('ltable.bin', 'wb') as f:
     for page in range(0, 2 ** (max(additional_pins) + 1), 256):
         columns = zip(*(r.split() for r in rows))
         for i, cell in enumerate(cell for col in columns for cell in col):
-            state = page & sum(states.values())
-            if state == states['S0']:
+            state = (
+                bool(page & states['S0']) * 1 +
+                bool(page & states['S1']) * 2 +
+                bool(page & states['S2']) * 4
+            )
+            if state == 1:
                 # state 1: NOP and next is state 2
                 code = 0x02
-            elif state == states['S1']:
+            elif state == 2:
                 # state 2: NOP and next is state 3
                 code = 0x03
-            elif state == states['S0'] | states['S1']:
-                # state 3: NOP and next is state 0
-                code = 0x00
-            elif state & states['S2']:
-                # state 4+: NOP and next is state +1 (mod 8)
-                state_num = 4
-                state_num |= 1 if state & states['S0'] else 0
-                state_num |= 2 if state & states['S1'] else 0
-                code = 0x00 + ((state_num + 1) & 7)
+            elif 4 <= state < 7:
+                # state 4-6: NOP and next is state +1 (mod 8)
+                code = 0x00 + state + 1
             else:
                 opcode, sep, code = cell.rpartition(':')
                 if not page and sep:
@@ -86,4 +84,7 @@ with open('ltable.bin', 'wb') as f:
                     if not (page & inputs[opcode[2:]]):
                         # replace with NOP when input active
                         code == 0x00
+                if state == 3 or state == 7:
+                    # suppress enable for transition state
+                    code &= ~0x40
             f.write(bytes([code]))
