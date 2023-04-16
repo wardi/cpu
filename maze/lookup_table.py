@@ -83,7 +83,7 @@ with open('ltable.bin', 'wb') as f:
                     # inputs are active low
                     if not (page & inputs[opcode[2:]]):
                         # replace with NOP when input active
-                        code == 0x00
+                        code = 0x00
                 if state == 3 or state == 7:
                     # suppress enable for transition state
                     code &= ~0x40
