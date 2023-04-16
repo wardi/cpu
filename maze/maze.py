@@ -7,86 +7,81 @@ import struct
 import cmdconsts
 from cmdconsts import *
 from cgram import CGDATA, CG, CGINTRODATA, CGINTRO
+from assembler import assemble
 
 
 ROM_SIZE = 512 * 1024
 WIDTH = 20
-SCROLL_WINDOW = 40
 HEIGHT = 4
 
-if sys.stdout.isatty():
-    sys.stderr.write('Usage: rhythm.py > prog.bin\n')
+try:
+    output_name = sys.argv[1]
+except IndexError:
+    sys.stderr.write('Usage: maze.py prog.bin\n')
     sys.exit(1)
 
-def out(b):
-    sys.stdout.buffer.write(b)
-    out.written += len(b)
-out.written = 0
-
-def label():
-    return out.written
-
-def jmp(lb):
-    out(opx(f'JM{lb >> 16}'))
-    out(struct.pack('>H', lb & 0xffff))
 
 def opx(op):
     '''expand opcode to byte'''
     return op if isinstance(op, bytes) else getattr(cmdconsts, op)
 
-# INIT
-out(INI)
-out(INI)
-out(HID)
-out(EIN)
-out(CLR)
-'''
-# INTRO
-out(C00)
-for op in CGINTRODATA:
-    out(opx(op))
-out(E27)
-for ch in 'Mm':
-    out(opx(CGINTRO[ch]))
-out(D27)
-for ch in 'Am':
-    out(opx(CGINTRO[ch]))
-out(E07)
-for ch in 'Zz':
-    out(opx(CGINTRO[ch]))
-out(D07)
-for ch in 'Ez':
-    out(opx(CGINTRO[ch]))
-out(E31)
-for ch in 'Gg':
-    out(opx(CGINTRO[ch]))
-out(D31)
-for ch in 'Am':
-    out(opx(CGINTRO[ch]))
-out(E11)
-for ch in 'Mm':
-    out(opx(CGINTRO[ch]))
-out(D11)
-for ch in 'Ez':
-    out(opx(CGINTRO[ch]))
-'''
+def init_display(out, label, jmp):
+    '''initialization sequence for HD44780 display'''
+    out(INI)  # sw hack: 1st opcode may not be executed properly
+    out(INI)  # so we do it again
+    out(HID)
+    out(EIN)
 
-# pause
-loop = label()
-out(b'/')
-out(HXB)
-jmp(loop)
-loop2 = label()
-out(b'!')
-out(HXA)
-jmp(loop2)
-jmp(loop)
+def maze_intro(out, label, jmp):
+    '''MAZE GAME text'''
+    out(CLR)
+    out(C00)
+    for op in CGINTRODATA:
+        out(opx(op))
+    for pos, chrs in [
+            (E27, 'Mm'),
+            (D27, 'Am'),
+            (E07, 'Zz'),
+            (D07, 'Ez'),
+            (E31, 'Gg'),
+            (D31, 'Am'),
+            (E11, 'Mm'),
+            (D11, 'Ez'),
+        ]:
+        out(pos)
+        for ch in chrs:
+            out(opx(CGINTRO[ch]))
+
+def input_test(out, label, jmp):
+    out(CLR)
+    out(D00)
+    out(b'Press button(s)')
+    label('_wait_press')
+    out(E00)
+    for hb, bn in [
+            (HXU, 'up'),
+            (HXD, 'down'),
+            (HXL, 'left'),
+            (HXR, 'right'),
+            (HXB, 'b'),
+            (HXA, 'a'),
+        ]:
+        out(hb)
+        jmp(f'_{bn}_pressed')
+        out(b' ' * len(bn))
+        jmp(f'_after_{bn}')
+        label(f'_{bn}_pressed')
+        out(bn.encode('ascii').upper())
+        label(f'_after_{bn}')
+        out(b' ')
+    jmp('_wait_press')
 
 
-# TBD: GAME
+image = assemble([
+    init_display,
+    input_test,
+])
 
-
-
-out(INI * (ROM_SIZE - out.written))
-sys.exit(0)
-
+with open(output_name, 'wb') as output:
+    output.write(image)
+    output.write(INI * (ROM_SIZE - len(image)))
