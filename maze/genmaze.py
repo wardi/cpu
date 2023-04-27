@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+
+import sys
 import numpy as np
 from skimage.segmentation import flood_fill
 
@@ -91,5 +94,11 @@ def braillepixels(a):
 
 
 if __name__ == '__main__':
-    for l in braillepixels(ant_nest(box(60,60), np.random.default_rng(42))):
-        print(l)
+    mz = ant_nest(box(35,35), np.random.default_rng(42))
+    try:
+        output_name = sys.argv[1]
+    except IndexError:
+        for l in braillepixels(mz):
+            print(l)
+    else:
+        np.save(output_name, mz, allow_pickle=False)

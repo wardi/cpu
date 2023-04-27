@@ -1,10 +1,13 @@
 .DELETE_ON_ERROR:
 
-prog.bin : maze.py cmdconsts.py genmaze.py cgram.py
+prog.bin : maze.py cmdconsts.py genmaze.py cgram.py map1.npy
 	python3 $< $@
 
 cmdconsts.py ltable.bin : lookup_table.py
 	python3 $< > $@
+
+map1.npy : genmaze.py
+	python3 $< $@
 
 .PHONY : flash
 flash : prog.bin
