@@ -1,12 +1,9 @@
 #!/usr/bin/env python3
 
 import sys
-import itertools
-import struct
 
 import cmdconsts
 from cmdconsts import *
-from cgram import CGDATA, CG, CGINTRODATA, CGINTRO
 from assembler import assemble
 
 
@@ -17,7 +14,7 @@ HEIGHT = 4
 try:
     output_name = sys.argv[1]
 except IndexError:
-    sys.stderr.write('Usage: maze.py prog.bin\n')
+    sys.stderr.write('Usage: input_test.py test.bin\n')
     sys.exit(1)
 
 
@@ -25,12 +22,14 @@ def opx(op):
     '''expand opcode to byte'''
     return op if isinstance(op, bytes) else getattr(cmdconsts, op)
 
+
 def init_display(out, label, jmp):
     '''initialization sequence for HD44780 display'''
     out(INI)  # sw hack: 1st opcode may not be executed properly
     out(INI)  # so we do it again
     out(HID)
     out(EIN)
+
 
 def input_test(out, label, jmp):
     out(CLR)
@@ -45,7 +44,7 @@ def input_test(out, label, jmp):
             (HXR, 'right'),
             (HXB, 'b'),
             (HXA, 'a'),
-        ]:
+            ]:
         out(hb)
         jmp(f'_{bn}_pressed')
         out(b' ' * len(bn))
