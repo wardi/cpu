@@ -26,7 +26,7 @@ except IndexError:
     sys.exit(1)
 
 with open('map.txt') as m:
-    map = m.readlines()
+    map_ = m.readlines()
 
 
 def opx(op):
@@ -94,22 +94,40 @@ def main_loop(out, label, jmp):
     pos_y = START_Y
     pos_x = START_X
     out(CLR)
-    out(D00)
-    out(CG1)
-    out(CG2)
-    out(CG3)
-    out(CG4)
-    out(CG5)
-    out(CG6)
-    out(CG7)
-    out(E15)
-    out(CG0)
+
+    CPOS_TOP = [E20, D20, E00, D00]
+
+    for x, cpos in zip(range(pos_x - 5, pos_x + 7, 3), CPOS_TOP):
+        out(cpos)
+        for y in range(pos_y - 9, pos_y + 11):
+            if x + 2 == pos_x and y == pos_y:
+                glyph = [
+                    int(map_[y][x]) * cgram.WALL_0[r]
+                    + int(map_[y][x + 1]) * cgram.WALL_1[r]
+                    + cgram.PLAYER_VERTICAL_1[r]
+                    for r in range(8)
+                ]
+                out(C00)
+                for b in glyph:
+                    out(opx(f'B{b:02d}'))
+                out(D29)
+                out(CG0)
+            else:
+                walls = (
+                    int(map_[y][x])
+                    + int(map_[y][x + 1]) * 2
+                    + int(map_[y][x + 2]) * 4
+                )
+                if walls:
+                    out(opx(f'CG{walls:01d}'))
+                else:
+                    out(b' ')
 
 
 image = assemble([
     init_display,
-    maze_intro,
-    press_any_button,
+#    maze_intro,
+#    press_any_button,
     init_cgram,
     main_loop,
 ])
