@@ -15,9 +15,8 @@ HEIGHT = 20
 
 # based on map.txt
 TOP_Y = 15
-BOTTOM_Y = 140
-START_Y = 15
-START_X = 17
+BOTTOM_Y = 100  # 140
+
 
 try:
     output_name = sys.argv[1]
@@ -91,10 +90,33 @@ def init_cgram(out, label, jmp):
 
 
 def main_loop(out, label, jmp):
-    pos_y = START_Y
-    pos_x = START_X
     out(CLR)
 
+    for pos_y, row in enumerate(map_[TOP_Y:BOTTOM_Y + 1], TOP_Y):
+        for pos_x, cell in enumerate(row):
+            if cell != '0':
+                continue
+
+            label(f'pos {pos_y},{pos_x}')
+            draw_map(pos_y, pos_x, out)
+            label(f'input {pos_y},{pos_x}')
+            if pos_y > TOP_Y and map_[pos_y - 1][pos_x] == '0':
+                out(HXU)
+                jmp(f'pos {pos_y - 1},{pos_x}')
+            if map_[pos_y][pos_x + 1] == '0':
+                out(HXR)
+                jmp(f'pos {pos_y},{pos_x + 1}')
+            if pos_y < BOTTOM_Y and map_[pos_y + 1][pos_x] == '0':
+                out(HXD)
+                jmp(f'pos {pos_y + 1},{pos_x}')
+            if map_[pos_y][pos_x - 1] == '0':
+                out(HXL)
+                jmp(f'pos {pos_y},{pos_x - 1}')
+            jmp(f'input {pos_y},{pos_x}')
+
+
+
+def draw_map(pos_y, pos_x, out):
     CPOS_TOP = [E20, D20, E00, D00]
 
     for x, cpos in zip(range(pos_x - 5, pos_x + 7, 3), CPOS_TOP):
