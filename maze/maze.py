@@ -15,7 +15,7 @@ HEIGHT = 20
 
 # based on map.txt
 TOP_Y = 15
-BOTTOM_Y = 100  # 140
+BOTTOM_Y = 132  # 140
 
 
 try:
@@ -123,10 +123,13 @@ def draw_map(pos_y, pos_x, out):
         out(cpos)
         for y in range(pos_y - 9, pos_y + 11):
             if x + 2 == pos_x and y == pos_y:
+                plr = [
+                    cgram.PLAYER_VERTICAL_1,
+                    cgram.PLAYER_VERTICAL_2][(x + y) % 2]
                 glyph = [
                     int(map_[y][x]) * cgram.WALL_0[r]
                     + int(map_[y][x + 1]) * cgram.WALL_1[r]
-                    + cgram.PLAYER_VERTICAL_1[r]
+                    + plr[r]
                     for r in range(8)
                 ]
                 out(C00)
@@ -148,8 +151,8 @@ def draw_map(pos_y, pos_x, out):
 
 image = assemble([
     init_display,
-#    maze_intro,
-#    press_any_button,
+    maze_intro,
+    press_any_button,
     init_cgram,
     main_loop,
 ])
@@ -157,3 +160,4 @@ image = assemble([
 with open(output_name, 'wb') as output:
     output.write(image)
     output.write(INI * (ROM_SIZE - len(image)))
+    sys.stderr.write(f'{ROM_SIZE - len(image)} bytes remaining\n')
