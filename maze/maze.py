@@ -43,6 +43,7 @@ def init_display(out, label, jmp):
 
 def maze_intro(out, label, jmp):
     '''MAZE GAME text'''
+    label('intro')
     out(CLR)
     out(C00)
     for op in cgram.CGINTRODATA:
@@ -106,9 +107,12 @@ def main_loop(out, label, jmp):
             if map_[pos_y][pos_x + 1] == '0':
                 out(HXR)
                 jmp(f'pos {pos_y},{pos_x + 1}')
-            if pos_y < BOTTOM_Y and map_[pos_y + 1][pos_x] == '0':
+            if map_[pos_y + 1][pos_x] == '0':
                 out(HXD)
-                jmp(f'pos {pos_y + 1},{pos_x}')
+                if pos_y < BOTTOM_Y:
+                    jmp(f'pos {pos_y + 1},{pos_x}')
+                else:
+                    jmp('intro')
             if map_[pos_y][pos_x - 1] == '0':
                 out(HXL)
                 jmp(f'pos {pos_y},{pos_x - 1}')
