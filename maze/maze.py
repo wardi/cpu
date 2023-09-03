@@ -15,7 +15,7 @@ HEIGHT = 20
 
 # based on map.txt
 TOP_Y = 15
-BOTTOM_Y = 132  # 140
+BOTTOM_Y = 140
 
 
 try:
