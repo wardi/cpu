@@ -15,7 +15,7 @@ HEIGHT = 20
 
 # based on map.txt
 TOP_Y = 15
-BOTTOM_Y = 140
+BOTTOM_Y = 120 #140
 
 
 try:
@@ -81,7 +81,10 @@ def press_any_button(out, label, jmp):
 
 def init_cgram(out, label, jmp):
     out(CLR)
-    out(C10)
+    out(C00)
+    for b in cgram.PLAYER_VERTICAL_1:
+        out(opx(f'B{b:02d}'))
+
     for w in cgram.WALLS:
         for b in w:
             out(opx(f'B{b:02d}'))
