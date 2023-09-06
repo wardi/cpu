@@ -82,7 +82,7 @@ def press_any_button(out, label, jmp):
 def init_cgram(out, label, jmp):
     out(CLR)
     out(C00)
-    for b in cgram.PLAYER_VERTICAL_1:
+    for b in cgram.PLAYER_VERTICAL[0]:
         out(opx(f'B{b:02d}'))
 
     for w in cgram.WALLS:
@@ -137,23 +137,21 @@ def draw_map(pos_y, pos_x, out, label, jmp):
     dirty = False
     if map_[pos_y][pos_x - 1] == '0':
         label(f'pos {pos_y},{pos_x} r')
-        glyph(cgram.PLAYER_RIGHT)
+        glyph(cgram.PLAYER_RIGHT[pos_x % 2])
         dirty = True
 
     if map_[pos_y][pos_x + 1] == '0':
         if dirty:
             jmp(f'pos {pos_y},{pos_x}')
         label(f'pos {pos_y},{pos_x} l')
-        glyph(cgram.PLAYER_LEFT)
+        glyph(cgram.PLAYER_LEFT[pos_x % 2])
         dirty = True
 
     if map_[pos_y - 1][pos_x] == '0' or map_[pos_y + 1][pos_x] == '0':
         if dirty:
             jmp(f'pos {pos_y},{pos_x}')
         label(f'pos {pos_y},{pos_x} v')
-        glyph([
-            cgram.PLAYER_VERTICAL_1, cgram.PLAYER_VERTICAL_2
-            ][(pos_x + pos_y) % 2])
+        glyph(cgram.PLAYER_VERTICAL[pos_y % 2])
 
     label(f'pos {pos_y},{pos_x}')
     for xd, cpos in zip(XDELTA, CPOS_TOP):
