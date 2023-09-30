@@ -16,7 +16,7 @@ def out(b):
 out.written = 0
 
 def pause():
-    out(INI * 40)
+    out(INI * 160)
 
 
 if __name__ == '__main__':
@@ -25,7 +25,7 @@ if __name__ == '__main__':
         sys.exit(1)
     # INIT
     out(INI)
-    out(CUR)
+    out(HID)
     out(EIN)
     out(CLR)
 
@@ -35,21 +35,23 @@ if __name__ == '__main__':
     out(B17 * 6) # X...X
     out(B31)     # XXXXX
 
-    # fill screen
-    out(D00)
-    out(CG0 * 20 * 4)
-
-    for i in range(12):
+    for i in range(6):
         pause()
         for pos in [D00, E00, D20, E20]:
             out(pos)
             out(BLK * 20)
             pause()
+
+        pause()
+        for pos in [D00, E00, D20, E20]:
             out(pos)
             out(CG0 * 20)
+            pause()
 
-    pause()
-    pause()
+    out(CLR)
+    for i in range(5):
+        pause()
+
     for i in range(12):
         pause()
         for j in range(20):
@@ -62,6 +64,9 @@ if __name__ == '__main__':
             out(bytes([ord(D00) + j]))
             out(BLK)
             pause()
+
+        pause()
+        for j in range(20):
             out(bytes([ord(E20) + j]))
             out(CG0)
             out(bytes([ord(D20) + j]))
@@ -70,6 +75,7 @@ if __name__ == '__main__':
             out(CG0)
             out(bytes([ord(D00) + j]))
             out(CG0)
+            pause()
 
     while out.written < ROM_SIZE:
         out(INI)
