@@ -8,18 +8,16 @@ ROM_SIZE = 512 * 1024
 WIDTH = 20
 HEIGHT = 4
 
-show = [
-b'XXXXXXXXXXXXXXXXXXXX',
-b'X X X X X X X X X XX',
-b'XX X X X X X X X X X',
-b'XXXXXXXXXXXXXXXXXXXX',
-]
 
 def out(b):
     out.written += len(b)
     sys.stdout.buffer.write(b)
 
 out.written = 0
+
+def pause():
+    out(INI * 40)
+
 
 if __name__ == '__main__':
     if sys.stdout.isatty():
@@ -31,8 +29,47 @@ if __name__ == '__main__':
     out(EIN)
     out(CLR)
 
-    for r in [0, 2, 1, 3]:
-        out(show[r].replace(b'X', b'\xff'))
+    # define cgram
+    out(C00)
+    out(B31)     # XXXXX
+    out(B17 * 6) # X...X
+    out(B31)     # XXXXX
+
+    # fill screen
+    out(D00)
+    out(CG0 * 20 * 4)
+
+    for i in range(12):
+        pause()
+        for pos in [D00, E00, D20, E20]:
+            out(pos)
+            out(BLK * 20)
+            pause()
+            out(pos)
+            out(CG0 * 20)
+
+    pause()
+    pause()
+    for i in range(12):
+        pause()
+        for j in range(20):
+            out(bytes([ord(E20) + j]))
+            out(BLK)
+            out(bytes([ord(D20) + j]))
+            out(BLK)
+            out(bytes([ord(E00) + j]))
+            out(BLK)
+            out(bytes([ord(D00) + j]))
+            out(BLK)
+            pause()
+            out(bytes([ord(E20) + j]))
+            out(CG0)
+            out(bytes([ord(D20) + j]))
+            out(CG0)
+            out(bytes([ord(E00) + j]))
+            out(CG0)
+            out(bytes([ord(D00) + j]))
+            out(CG0)
 
     while out.written < ROM_SIZE:
         out(INI)
