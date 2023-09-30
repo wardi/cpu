@@ -7,7 +7,7 @@ overwrites ltable.bin
 '''
 
 # byte order from top->bottom, left->right
-# (mnemonic:)hex-value
+# (opcode:)hex-value
 hex_map = """
     1 1 1     1 1 1 1 1 1 1 1 1 1 1 1 1
 CLR:0 1 1     1 1 1 1 1 1 1 1 1 1 1 1 1
@@ -38,7 +38,7 @@ columns = zip(*(r.split() for r in rows))
 
 with open('ltable.bin', 'wb') as f:
     for i, cell in enumerate(cell for col in columns for cell in col):
-        mnemonic, sep, code = cell.rpartition(':')
+        opcode, sep, code = cell.rpartition(':')
         if sep:
-           print(rf'{mnemonic} = b"\x{i:02x}"')
+           print(rf'{opcode} = b"\x{i:02x}"')
         f.write(bytes([int(code, 16)]))
