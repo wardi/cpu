@@ -2,7 +2,10 @@
 
 import sys
 import itertools
+import cmdconsts
 from cmdconsts import *
+
+from cgram import CGLIKE, CGLIKE_DATA, CGLIKED, CGLIKED_DATA
 
 ROM_SIZE = 512 * 1024
 WIDTH = 20
@@ -18,6 +21,8 @@ out.written = 0
 def pause():
     out(INI * 160)
 
+def opx(op):
+    return getattr(cmdconsts, op)
 
 if __name__ == '__main__':
     if sys.stdout.isatty():
@@ -31,30 +36,30 @@ if __name__ == '__main__':
 
     # define cgram
     out(C00)
-    out(B31)     # XXXXX
-    out(B17 * 6) # X...X
-    out(B31)     # XXXXX
+    out(B31)     # 0b11111
+    out(B17 * 6) # 0b10001
+    out(B31)     # 0b11111
 
     for i in range(6):
         pause()
         for pos in [D00, E00, D20, E20]:
             out(pos)
-            out(BLK * 20)
+            out(BLK * WIDTH)
             pause()
 
         pause()
         for pos in [D00, E00, D20, E20]:
             out(pos)
-            out(CG0 * 20)
+            out(CG0 * WIDTH)
             pause()
 
     out(CLR)
     for i in range(5):
         pause()
 
-    for i in range(12):
-        pause()
-        for j in range(20):
+    for i in range(6):
+        for j in range(WIDTH):
+            pause()
             out(bytes([ord(E20) + j]))
             out(BLK)
             out(bytes([ord(D20) + j]))
@@ -63,10 +68,9 @@ if __name__ == '__main__':
             out(BLK)
             out(bytes([ord(D00) + j]))
             out(BLK)
-            pause()
 
-        pause()
-        for j in range(20):
+        for j in range(WIDTH):
+            pause()
             out(bytes([ord(E20) + j]))
             out(CG0)
             out(bytes([ord(D20) + j]))
@@ -75,7 +79,22 @@ if __name__ == '__main__':
             out(CG0)
             out(bytes([ord(D00) + j]))
             out(CG0)
-            pause()
+
+    # define cgram
+    out(C10)
+    out(b''.join(opx(d) for d in CGLIKE_DATA))
+
+    out(D08 + b' ' + opx(CGLIKE['f1']) + opx(CGLIKE['f2']) + b' ')
+    out(E08 + opx(CGLIKE['t1']) + opx(CGLIKE['t2']) + opx(CGLIKE['t3']) + b' ')
+    out(D18 + b' ' + opx(CGLIKE['w1']) + opx(CGLIKE['w2']) + b' ')
+    out(E18 + b'    ')
+
+    for i in range(10):
+        pause()
+
+    # define cgram
+    out(C10)
+    out(b''.join(opx(d) for d in CGLIKED_DATA))
 
     while out.written < ROM_SIZE:
         out(INI)
