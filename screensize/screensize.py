@@ -19,7 +19,7 @@ def out(b):
 out.written = 0
 
 def pause():
-    out(INI * 160)
+    out(INI * 60)
 
 def opx(op):
     return getattr(cmdconsts, op)
@@ -54,10 +54,10 @@ if __name__ == '__main__':
             pause()
 
     out(CLR)
-    for i in range(5):
+    for i in range(25):
         pause()
 
-    for i in range(6):
+    for i in range(4):
         for j in range(WIDTH):
             pause()
             out(bytes([ord(E20) + j]))
@@ -84,17 +84,26 @@ if __name__ == '__main__':
     out(C10)
     out(b''.join(opx(d) for d in CGLIKE_DATA))
 
-    out(D08 + b' ' + opx(CGLIKE['f1']) + opx(CGLIKE['f2']) + b' ')
-    out(E08 + opx(CGLIKE['t1']) + opx(CGLIKE['t2']) + opx(CGLIKE['t3']) + b' ')
-    out(D18 + b' ' + opx(CGLIKE['w1']) + opx(CGLIKE['w2']) + b' ')
-    out(E18 + b'    ')
+    out(D07 + b'  ' + opx(CGLIKE['f1']) + opx(CGLIKE['f2']) + b' ')
+    out(E07 + b' ' + opx(CGLIKE['t1']) + opx(CGLIKE['t2']) + opx(CGLIKE['t3']) + b' ')
+    out(D27 + b'  ' + opx(CGLIKE['w1']) + opx(CGLIKE['w2']) + b' ')
+    out(E27 + b'     ')
 
-    for i in range(10):
+    for i in range(25):
         pause()
 
-    # define cgram
-    out(C10)
-    out(b''.join(opx(d) for d in CGLIKED_DATA))
+    for j in range(20):
+        # define cgram
+        out(C10)
+        out(b''.join(opx(d) for d in CGLIKED_DATA))
+        for i in range(25):
+            pause()
+
+        # define cgram
+        out(C10)
+        out(b''.join(opx(d) for d in CGLIKE_DATA))
+        for i in range(25):
+            pause()
 
     while out.written < ROM_SIZE:
         out(INI)
