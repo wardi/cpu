@@ -33,6 +33,7 @@ if __name__ == '__main__':
     out(HID)
     out(EIN)
     out(CLR)
+    pause()
 
     # define cgram
     out(C00)
