@@ -14,81 +14,81 @@ HC = 1 << 1  # Halt Clock  0: run, 1: halt
 @dataclass
 class LookupTableData:
     code: int
-    output: int = field(default=RS)
+    output: int = field(default=0)
     description: str = field(default='')
 
 
 class Op(LookupTableData, Enum):
-    CG0 = 0b0000_0000, 0
+    CG0 = 0b0000_0000, RS
 
-    CLR = 0b0000_0001, RS, 'clear display'
-    #CG1 = 0b0000_0001, 0
+    CLR = 0b0000_0001, 0, 'clear display'
+    #CG1 = 0b0000_0001, RS
 
-    HOM = 0b0000_0010, RS, 'home position'
-    #CG2 = 0b0000_0010, 0
+    HOM = 0b0000_0010, 0, 'home position'
+    #CG2 = 0b0000_0010, RS
 
-    #HOM = 0b0000_0011, RS, 'home position'
-    #CG3 = 0b0000_0011, 0
+    #HOM = 0b0000_0011, 0, 'home position'
+    #CG3 = 0b0000_0011, RS
     HLT = 0b0000_0011, HC, 'halt clock'
 
-    EDN = 0b0000_0100, RS, 'cursor decrementing'
-    #CG4 = 0b0000_0100, 0
+    EDN = 0b0000_0100, 0, 'cursor decrementing'
+    #CG4 = 0b0000_0100, RS
 
-    EDS = 0b0000_0101, RS, 'cursor decrementing + shift'
-    #CG5 = 0b0000_0101, 0
+    EDS = 0b0000_0101, 0, 'cursor decrementing + shift'
+    #CG5 = 0b0000_0101, RS
 
-    EIN = 0b0000_0110, RS, 'cursor incrementing'
-    #CG6 = 0b0000_0110, 0
+    EIN = 0b0000_0110, 0, 'cursor incrementing'
+    #CG6 = 0b0000_0110, RS
 
-    EIS = 0b0000_0111, RS, 'cursor incrementing + shift'
-    #CG7 = 0b0000_0111, 0
+    EIS = 0b0000_0111, 0, 'cursor incrementing + shift'
+    #CG7 = 0b0000_0111, RS
 
-    OFF = 0b0000_1000, RS, 'display off'
-    #CG0 = 0b0000_1000, 0
+    OFF = 0b0000_1000, 0, 'display off'
+    #CG0 = 0b0000_1000, RS
 
-    #OFF = 0b0000_1001, RS, 'display off'
-    CG1 = 0b0000_1001, 0
+    #OFF = 0b0000_1001, 0, 'display off'
+    CG1 = 0b0000_1001, RS
 
-    #OFF = 0b0000_1010, RS, 'display off'
-    CG2 = 0b0000_1010, 0
+    #OFF = 0b0000_1010, 0, 'display off'
+    CG2 = 0b0000_1010, RS
 
-    #OFF = 0b0000_1011, RS, 'display off'
-    CG3 = 0b0000_1011, 0
+    #OFF = 0b0000_1011, 0, 'display off'
+    CG3 = 0b0000_1011, RS
 
-    HID = 0b0000_1100, RS, 'display on, hidden cursor'
-    #CG4 = 0b0000_1100, 0
+    HID = 0b0000_1100, 0, 'display on, hidden cursor'
+    #CG4 = 0b0000_1100, RS
 
-    BLI = 0b0000_1101, RS, 'display on, blinking cursor'
-    #CG5 = 0b0000_1101, 0
+    BLI = 0b0000_1101, 0, 'display on, blinking cursor'
+    #CG5 = 0b0000_1101, RS
 
-    CUR = 0b0000_1110, RS, 'display on, underline cursor'
-    #CG6 = 0b0000_1110, 0
+    CUR = 0b0000_1110, 0, 'display on, underline cursor'
+    #CG6 = 0b0000_1110, RS
 
-    BCR = 0b0000_1111, RS, 'display on, blinking + underline cursor'
-    #CG7 = 0b0000_1111, 0
+    BCR = 0b0000_1111, 0, 'display on, blinking + underline cursor'
+    #CG7 = 0b0000_1111, RS
 
-    R = 0b0001_0000, RS, 'cursor right'
-    #R = 0b0001_0001, RS, 'cursor right'
-    #R = 0b0001_0010, RS, 'cursor right'
-    #R = 0b0001_0011, RS, 'cursor right'
-    L = 0b0001_0100, RS, 'cursor left'
-    #R = 0b0001_0101, RS, 'cursor left'
-    #R = 0b0001_0110, RS, 'cursor left'
-    #R = 0b0001_0111, RS, 'cursor left'
-    SR = 0b0001_1000, RS, 'shift right'
-    #SR = 0b0001_1001, RS, 'shift right'
-    #SR = 0b0001_1010, RS, 'shift right'
-    #SR = 0b0001_1011, RS, 'shift right'
-    SL = 0b0001_1100, RS, 'shift left'
-    #SL = 0b0001_1101, RS, 'shift left'
-    #SL = 0b0001_1110, RS, 'shift left'
-    #SL = 0b0001_1111, RS, 'shift left'
+    R = 0b0001_0000, 0, 'cursor right'
+    #R = 0b0001_0001, 0, 'cursor right'
+    #R = 0b0001_0010, 0, 'cursor right'
+    #R = 0b0001_0011, 0, 'cursor right'
+    L = 0b0001_0100, 0, 'cursor left'
+    #R = 0b0001_0101, 0, 'cursor left'
+    #R = 0b0001_0110, 0, 'cursor left'
+    #R = 0b0001_0111, 0, 'cursor left'
+    SR = 0b0001_1000, 0, 'shift right'
+    #SR = 0b0001_1001, 0, 'shift right'
+    #SR = 0b0001_1010, 0, 'shift right'
+    #SR = 0b0001_1011, 0, 'shift right'
+    SL = 0b0001_1100, 0, 'shift left'
+    #SL = 0b0001_1101, 0, 'shift left'
+    #SL = 0b0001_1110, 0, 'shift left'
+    #SL = 0b0001_1111, 0, 'shift left'
 
     # these conflict with '8', '9', ':', and ';'
-    #INI = 0b0011_1000, RS, 'initialize display'
-    #INI = 0b0011_1001, RS, 'initialize display'
-    #INI = 0b0011_1010, RS, 'initialize display'
-    INI = 0b0011_1011, RS, 'initialize display'
+    #INI = 0b0011_1000, 0, 'initialize display'
+    #INI = 0b0011_1001, 0, 'initialize display'
+    #INI = 0b0011_1010, 0, 'initialize display'
+    INI = 0b0011_1011, 0, 'initialize display'
 
     # CGRAM positioning
     # these conflict with ascii letters,
