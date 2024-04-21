@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 
 LOOKUP_SIZE = 256
-PAUSE_LENGTH = 100
+PAUSE_LENGTH = 200
 
 RS = 1 << 0  # LCD Register Select  0: command, 1: data transfer
 HC = 1 << 1  # Halt Clock  0: run, 1: halt
@@ -27,7 +27,7 @@ class Op(LookupTableData, Enum):
         return str(self) + str(other)
 
     def __radd__(self, other):
-        return str(self) + str(other)
+        return str(other) + str(self)
 
     CG0 = 0b0000_0000, RS
 
@@ -77,22 +77,22 @@ class Op(LookupTableData, Enum):
     BCR = 0b0000_1111, 0, 'display on, blinking + underline cursor'
     #CG7 = 0b0000_1111, RS
 
-    R = 0b0001_0000, 0, 'cursor right'
-    #R = 0b0001_0001, 0, 'cursor right'
-    #R = 0b0001_0010, 0, 'cursor right'
-    #R = 0b0001_0011, 0, 'cursor right'
-    L = 0b0001_0100, 0, 'cursor left'
-    #R = 0b0001_0101, 0, 'cursor left'
-    #R = 0b0001_0110, 0, 'cursor left'
-    #R = 0b0001_0111, 0, 'cursor left'
-    SR = 0b0001_1000, 0, 'shift right'
-    #SR = 0b0001_1001, 0, 'shift right'
-    #SR = 0b0001_1010, 0, 'shift right'
-    #SR = 0b0001_1011, 0, 'shift right'
-    SL = 0b0001_1100, 0, 'shift left'
-    #SL = 0b0001_1101, 0, 'shift left'
-    #SL = 0b0001_1110, 0, 'shift left'
-    #SL = 0b0001_1111, 0, 'shift left'
+    L = 0b0001_0000, 0, 'cursor left'
+    #L = 0b0001_0001, 0, 'cursor left'
+    #L = 0b0001_0010, 0, 'cursor left'
+    #L = 0b0001_0011, 0, 'cursor left'
+    R = 0b0001_0100, 0, 'cursor right'
+    #R = 0b0001_0101, 0, 'cursor right'
+    #R = 0b0001_0110, 0, 'cursor right'
+    #R = 0b0001_0111, 0, 'cursor right'
+    SL = 0b0001_1000, 0, 'shift left'
+    #SL = 0b0001_1001, 0, 'shift left'
+    #SL = 0b0001_1010, 0, 'shift left'
+    #SL = 0b0001_1011, 0, 'shift left'
+    SR = 0b0001_1100, 0, 'shift right'
+    #SR = 0b0001_1101, 0, 'shift right'
+    #SR = 0b0001_1110, 0, 'shift right'
+    #SR = 0b0001_1111, 0, 'shift right'
 
     # these conflict with '8', '9', ':', and ';'
     #INI = 0b0011_1000, 0, 'initialize display'
@@ -312,13 +312,14 @@ if args.prog:
         out(str(Op.INI) * int(PAUSE_LENGTH * n))
 
     out(Op.INI + Op.CLR + Op.EIN + Op.HID)
+    out('starting..')
 
     out(Op.C00)
     out(Op.BXXXXX)  # CG0 "▝"
+    out(Op.BXXXXX)
     out(Op.B_XXXX)
     out(Op.B__XXX)
     out(Op.B___XX)
-    out(Op.B____X)
     out(Op.B_____)
     out(Op.B_____)
     out(Op.B_____)
@@ -331,137 +332,147 @@ if args.prog:
     out(Op.B_____)
     out(Op.B_____)
     out(Op.BXXXXX)  # CG2 "▘"
+    out(Op.BXXXXX)
     out(Op.BXXXX_)
     out(Op.BXXX__)
     out(Op.BXX___)
-    out(Op.BX____)
     out(Op.B_____)
     out(Op.B_____)
     out(Op.B_____)
     out(Op.B_____)  # CG3 "▖"
     out(Op.B_____)
     out(Op.B_____)
-    out(Op.BX____)
     out(Op.BXX___)
     out(Op.BXXX__)
     out(Op.BXXXX_)
     out(Op.BXXXXX)
+    out(Op.BXXXXX)
 
     out(Op.D00 + ' CLR ▝▀▀▀▀▀▀▀▀▘ 0x01')
-    out(Op.E00 + '▖ clear display,    ')
-    out(Op.D20 + '█ reset start pos. &')
+    out(Op.E00 + '▖ clear all & reset ')
+    out(Op.D20 + '█ display shift,    ')
     out(Op.E20 + '█ cursor to top left')
     pause()
     out(Op.CLR)
-    pause()
+    pause(.4)
     out(Op.D00 + ' HOM ▝▀▀▀▀▀▀▀▀▘ 0x02')
-    out(Op.E00 + '▖ reset start pos. &')
-    out(Op.D20 + '█ cursor to top left')
-    out(Op.E20 + '█                   ')
+    out(Op.E00 + '▖ reset display     ')
+    out(Op.D20 + '█ shift, cursor to  ')
+    out(Op.E20 + '█ top left          ')
     out(Op.E00 + '^' + Op.HOM + Op.BLI)
     pause()
-    out(Op.HID)
+    out(Op.CLR)
+    out(Op.BLI)
     out(Op.D00 + ' EIN ▝▀▀▀▀▀▀▀▀▘ 0x06')
     out(Op.E00 + '▖ increment after   ')
     out(Op.D20 + '█ each data transfer')
     out(Op.E20 + '█                   ')
-    out(Op.BLI)
-    for i in range(PAUSE_LENGTH // 36):
+    for i in range(2 * PAUSE_LENGTH // 36):
         out(Op.E22 + '→ → → → → → → → →')
         out(Op.E22 + '                 ')
+    out(Op.CLR)
     out(Op.EDN)
     out(Op.D19 + ' EDN ▝▀▀▀▀▀▀▀▀▘ 0x04'[::-1])
     out(Op.E19 + '▖ decrement after   '[::-1])
     out(Op.D39 + '█ each data transfer'[::-1])
     out(Op.E39 + '█                   '[::-1])
-    for i in range(PAUSE_LENGTH // 36):
+    for i in range(2 * PAUSE_LENGTH // 36):
         out(Op.E39 + '← ← ← ← ← ← ← ← ←')
         out(Op.E39 + '                 ')
     out(Op.CLR)
-    out(Op.EIS)
+    out(Op.EIS + Op.CUR)
     out(Op.D00 + ' EIS ▝▀▀▀▀▀▀▀▀▘ 0x07')
     out(Op.E00 + '▖ increment & shift ')
-    out(Op.D20 + '█ start pos. after  ')
-    out(Op.E20 + '█ each data transfer')
+    out(Op.D20 + '█ display after each')
+    out(Op.E20 + '█ data transfer     ')
+    out(Op.HID)
     pause()
+    out(Op.CUR)
     out(Op.D00 + ' ' * 80)
     out(Op.EDS)
     out(Op.D19 + ' EDS ▝▀▀▀▀▀▀▀▀▘ 0x05'[::-1])
     out(Op.E19 + '▖ decrement & shift '[::-1])
-    out(Op.D39 + '█ start pos. after  '[::-1])
-    out(Op.E39 + '█ each data transfer'[::-1])
+    out(Op.D39 + '█ display after each'[::-1])
+    out(Op.E39 + '█ data transfer     '[::-1])
+    out(Op.HID)
     pause()
-    out(Op.D00 + ' ' * 80)
+    out(Op.CUR)
+    out(Op.D39 + ' ' * 80)
     out(Op.EIN)
     out(Op.D00 + ' OFF ▝▀▀▀▀▀▀▀▀▘ 0x08')
     out(Op.E00 + '▖ display off       ')
     out(Op.D20 + '█                   ')
     out(Op.E20 + '█                   ')
     out(Op.E23 + '3.. ')
-    pause(.3)
-    out(Op.E23 + '2.. ')
-    pause(.3)
-    out(Op.E23 + '1.. ')
-    pause(.3)
+    pause(.2)
+    out('2.. ')
+    pause(.2)
+    out('1.. ')
+    pause(.2)
     out(Op.OFF)
-    pause()
-    out(op.HID)
+    pause(.4)
+    out(Op.HID)
+    out('back')
+    pause(.3)
+    out(op.CLR)
     out(Op.D00 + ' HID ▝▀▀▀▀▀▀▀▀▘ 0x08')
     out(Op.E00 + '▖ display on, hidden')
     out(Op.D20 + '█ cursor            ')
     out(Op.E20 + '█                → ←')
     out(Op.E38)
     pause()
-    out(op.BLI)
+    out(op.CLR + op.BLI)
     out(Op.D00 + ' BLI ▝▀▀▀▀▀▀▀▀▘ 0x0d')
-    out(Op.E00 + '▖ display on, block ')
-    out(Op.D20 + '█ blinking cursor   ')
-    out(Op.E20 + '█                → ←')
+    out(Op.E00 + '▖ display on,       ')
+    out(Op.D20 + '█ blinking block    ')
+    out(Op.E20 + '█ cursor         → ←')
     out(Op.E38)
     pause()
-    out(op.CUR)
+    out(op.CLR + op.CUR)
     out(Op.D00 + ' CUR ▝▀▀▀▀▀▀▀▀▘ 0x0e')
     out(Op.E00 + '▖ display on,       ')
     out(Op.D20 + '█ underline cursor  ')
     out(Op.E20 + '█                → ←')
     out(Op.E38)
     pause()
-    out(op.BCR)
+    out(op.CLR + op.BCR)
     out(Op.D00 + ' BCR ▝▀▀▀▀▀▀▀▀▘ 0x0f')
-    out(Op.E00 + '▖ display on, block ')
-    out(Op.D20 + '█ blinking underline')
-    out(Op.E20 + '█ cursor         → ←')
+    out(Op.E00 + '▖ display on,       ')
+    out(Op.D20 + '█ blinking block &  ')
+    out(Op.E20 + '█ underline curs.→ ←')
     out(Op.E38)
     pause()
-    out(op.BLI)
-    out(Op.D00 + ' R ▝▀▀▀▀▀▀▀▀▀▀▘ 0x10')
-    out(Op.E00 + '▖ move cursor right ')
+    out(op.CLR + op.BCR)
+    out(Op.D00 + ' L ▝▀▀▀▀▀▀▀▀▀▀▘ 0x10')
+    out(Op.E00 + '▖ move cursor left  ')
     out(Op.D20 + '█                   ')
     out(Op.E20 + '█                   ')
     out(op.D00)
     for i in range(80):
-        out(Op.R + str(Op.INI) * (PAUSE_LENGTH // 80))
-    out(Op.D00 + ' L ▝▀▀▀▀▀▀▀▀▀▀▘ 0x14')
-    out(Op.E00 + '▖ move cursor left  ')
+        out(Op.L + str(Op.INI) * (PAUSE_LENGTH // 80))
+    out(Op.CLR)
+    out(Op.D00 + ' R ▝▀▀▀▀▀▀▀▀▀▀▘ 0x14')
+    out(Op.E00 + '▖ move cursor right ')
     out(Op.D20 + '█                   ')
     out(Op.E20 + '█                   ')
     out(op.E39)
     for i in range(80):
-        out(Op.L + str(Op.INI) * (PAUSE_LENGTH // 80))
-    out(Op.CUR)
-    out(Op.D00 + ' SR ▝▀▀▀▀▀▀▀▀▀▘ 0x18')
-    out(Op.E00 + '▖ shift start pos.  ')
-    out(Op.D20 + '█ right (display    ')
-    out(Op.E20 + '█ moves left)       ')
-    pause()
-    for i in range(40):
-        out(Op.SR + str(Op.INI) * (PAUSE_LENGTH // 40))
-    pause(.4)
-    out(Op.D00 + ' SL ▝▀▀▀▀▀▀▀▀▀▘ 0x1c')
-    out(Op.E00 + '▖ shift start pos.  ')
-    out(Op.D20 + '█ left (display     ')
-    out(Op.E20 + '█ moves right)      ')
+        out(Op.R + str(Op.INI) * (PAUSE_LENGTH // 80))
+    out(Op.CLR + Op.HID)
+    out(Op.D00 + ' SL ▝▀▀▀▀▀▀▀▀▀▘ 0x18')
+    out(Op.E00 + '▖ shift display left')
+    out(Op.D20 + '█                   ')
+    out(Op.E20 + '█                   ')
     pause()
     for i in range(40):
         out(Op.SL + str(Op.INI) * (PAUSE_LENGTH // 40))
+    pause(.4)
+    out(Op.CLR)
+    out(Op.D00 + ' SR ▝▀▀▀▀▀▀▀▀▀▘ 0x1c')
+    out(Op.E00 + '▖ shift display     ')
+    out(Op.D20 + '█ right             ')
+    out(Op.E20 + '█                   ')
+    pause()
+    for i in range(40):
+        out(Op.SR + str(Op.INI) * (PAUSE_LENGTH // 40))
     out(Op.HLT)
