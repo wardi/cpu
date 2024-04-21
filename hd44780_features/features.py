@@ -3,6 +3,8 @@
 import argparse
 from dataclasses import dataclass, field
 from enum import Enum
+from random import Random
+import re
 
 LOOKUP_SIZE = 256
 PAUSE_LENGTH = 200
@@ -311,42 +313,46 @@ if args.prog:
     def pause(n=1):
         out(str(Op.INI) * int(PAUSE_LENGTH * n))
 
+    def cgram_init():
+        out(Op.C00)
+        out(Op.BXXXXX)  # CG0 "▝"
+        out(Op.BXXXXX)
+        out(Op.BXXXXX)
+        out(Op.B_XXXX)
+        out(Op.B__XXX)
+        out(Op.B_____)
+        out(Op.B_____)
+        out(Op.B_____)
+        out(Op.BXXXXX)  # CG1 "▀"
+        out(Op.BXXXXX)
+        out(Op.BXXXXX)
+        out(Op.BXXXXX)
+        out(Op.BXXXXX)
+        out(Op.B_____)
+        out(Op.B_____)
+        out(Op.B_____)
+        out(Op.BXXXXX)  # CG2 "▘"
+        out(Op.BXXXXX)
+        out(Op.BXXXXX)
+        out(Op.BXXXX_)
+        out(Op.BXXX__)
+        out(Op.B_____)
+        out(Op.B_____)
+        out(Op.B_____)
+        out(Op.B_____)  # CG3 "▖"
+        out(Op.B_____)
+        out(Op.B_____)
+        out(Op.BXXX__)
+        out(Op.BXXXX_)
+        out(Op.BXXXXX)
+        out(Op.BXXXXX)
+        out(Op.BXXXXX)
+
     out(Op.INI + Op.CLR + Op.EIN + Op.HID)
     out('starting..')
-
-    out(Op.C00)
-    out(Op.BXXXXX)  # CG0 "▝"
-    out(Op.BXXXXX)
-    out(Op.B_XXXX)
-    out(Op.B__XXX)
-    out(Op.B___XX)
-    out(Op.B_____)
-    out(Op.B_____)
-    out(Op.B_____)
-    out(Op.BXXXXX)  # CG1 "▀"
-    out(Op.BXXXXX)
-    out(Op.BXXXXX)
-    out(Op.BXXXXX)
-    out(Op.BXXXXX)
-    out(Op.B_____)
-    out(Op.B_____)
-    out(Op.B_____)
-    out(Op.BXXXXX)  # CG2 "▘"
-    out(Op.BXXXXX)
-    out(Op.BXXXX_)
-    out(Op.BXXX__)
-    out(Op.BXX___)
-    out(Op.B_____)
-    out(Op.B_____)
-    out(Op.B_____)
-    out(Op.B_____)  # CG3 "▖"
-    out(Op.B_____)
-    out(Op.B_____)
-    out(Op.BXX___)
-    out(Op.BXXX__)
-    out(Op.BXXXX_)
-    out(Op.BXXXXX)
-    out(Op.BXXXXX)
+    cgram_init()
+    out(Op.CLR)
+    pause()
 
     out(Op.D00 + ' CLR ▝▀▀▀▀▀▀▀▀▘ 0x01')
     out(Op.E00 + '▖ clear all & reset ')
@@ -396,18 +402,19 @@ if args.prog:
     out(Op.E39 + '█ data transfer     '[::-1])
     out(Op.HID)
     pause()
-    out(Op.CUR)
     out(Op.D39 + ' ' * 80)
     out(Op.EIN)
     out(Op.D00 + ' OFF ▝▀▀▀▀▀▀▀▀▘ 0x08')
     out(Op.E00 + '▖ display off       ')
     out(Op.D20 + '█                   ')
     out(Op.E20 + '█                   ')
-    out(Op.E23 + '3.. ')
     pause(.2)
-    out('2.. ')
+    out(Op.CUR)
+    out(Op.E23 + '3, ')
     pause(.2)
-    out('1.. ')
+    out('2, ')
+    pause(.2)
+    out('1, ')
     pause(.2)
     out(Op.OFF)
     pause(.4)
@@ -463,16 +470,77 @@ if args.prog:
     out(Op.E00 + '▖ shift display left')
     out(Op.D20 + '█                   ')
     out(Op.E20 + '█                   ')
-    pause()
+    pause(.4)
     for i in range(40):
         out(Op.SL + str(Op.INI) * (PAUSE_LENGTH // 40))
     pause(.4)
-    out(Op.CLR)
+    out(Op.CLR + Op.HID)
     out(Op.D00 + ' SR ▝▀▀▀▀▀▀▀▀▀▘ 0x1c')
     out(Op.E00 + '▖ shift display     ')
     out(Op.D20 + '█ right             ')
     out(Op.E20 + '█                   ')
-    pause()
+    pause(.4)
     for i in range(40):
         out(Op.SR + str(Op.INI) * (PAUSE_LENGTH // 40))
+    pause(.4)
+    out(Op.CLR + Op.HID)
+    out(Op.D00 + ' Cxy ▝▀▀▀▀▀▘ 0x40-7f')
+    out(Op.E00 + '▖ set CGRAM address ')
+    out(Op.D20 + '█ x = char. (0-7)   ')
+    out(Op.E20 + '█ y = row (0-7)     ')
+
+    for i in range(3 * PAUSE_LENGTH // 14):
+        out(Op.C00)
+        out(Op.BXXX_X)  # CG0 "▝"
+        out(Op.BXXX_X)
+        out(Op.BXXX_X)
+        out(Op.BXXX_X)
+        out(Op.BXXX_X)
+        out(Op.BXXX_X)
+        out(Op.B_____)
+        out(Op.B_____)
+        out(Op.BXXXXX)  # CG1 "▀"
+        out(Op.BXXXXX if i % 3 == 2 else Op.B_____)
+        out(Op.BXXXXX if i % 3 == 0 else Op.B_____)
+        out(Op.BXXXXX if i % 3 == 1 else Op.B_____)
+        out(Op.BXXXXX if i % 3 == 2 else Op.B_____)
+        if i:
+            continue
+        out(Op.BXXXXX)
+        out(Op.B_____)
+        out(Op.B_____)
+        out(Op.BXX___)  # CG2 "▘"
+        out(Op.B_XX__)
+        out(Op.B_XXXX)
+        out(Op.B_XXXX)
+        out(Op.B_XX__)
+        out(Op.BXX___)
+        out(Op.B_____)
+        out(Op.B_____)
+    cgram_init()
+
+    out(Op.CLR + Op.HID)
+    out(Op.D00 + ' Dxx ▝▀▀▀▀▀▘ 0x80-a7')
+    out(Op.E00 + '▖ set DDRAM address ')
+    out(Op.D20 + '█ bank 1 (rows 1,3) ')
+    out(Op.E20 + '█ xx = pos. (00-39) ')
+    rnd = Random(42)
+    ops = [op for op in Op if re.match(r'D\d\d', op.name)]
+    rnd.shuffle(ops)
+    out(Op.BCR)
+    for op in ops:
+        out(op + str(Op.INI) * (PAUSE_LENGTH // 40))
+
+    out(Op.CLR + Op.HID)
+    out(Op.D00 + ' Exx ▝▀▀▀▀▀▘ 0xc0-e7')
+    out(Op.E00 + '▖ set DDRAM address ')
+    out(Op.D20 + '█ bank 2 (rows 2,4) ')
+    out(Op.E20 + '█ xx = pos. (00-39) ')
+    ops = [op for op in Op if re.match(r'E\d\d', op.name)]
+    rnd.shuffle(ops)
+    out(Op.BCR)
+    for op in ops:
+        out(op + str(Op.INI) * (PAUSE_LENGTH // 40))
+
+    out(Op.HID)
     out(Op.HLT)
