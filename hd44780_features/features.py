@@ -17,6 +17,16 @@ class LookupTableData:
     output: int = field(default=0)
     description: str = field(default='')
 
+    def __str__(self):
+        "code as string for output (0x00-0xff encode as latin1 for binary)"
+        return chr(self.code)
+
+    def __add__(self, other):
+        return str(self) + str(other)
+
+    def __radd__(self, other):
+        return str(self) + str(other)
+
 
 class Op(LookupTableData, Enum):
     CG0 = 0b0000_0000, RS
@@ -126,37 +136,69 @@ class Op(LookupTableData, Enum):
     #C36 = 0x5e
     #C37 = 0x5f
     #C40 = 0x60  # CG4 top row
+    B_____ = 0x60, RS
     #C41 = 0x61
+    B____X = 0x61, RS
     #C42 = 0x62
+    B___X_ = 0x62, RS
     #C43 = 0x63
+    B___XX = 0x63, RS
     #C44 = 0x64
+    B__X__ = 0x64, RS
     #C45 = 0x65
+    B__X_X = 0x65, RS
     #C46 = 0x66
+    B__XX_ = 0x66, RS
     #C47 = 0x67
+    B__XXX = 0x67, RS
     #C50 = 0x68  # CG5 top row
+    B_X___ = 0x68, RS
     #C51 = 0x69
+    B_X__X = 0x69, RS
     #C52 = 0x6a
+    B_X_X_ = 0x6a, RS
     #C53 = 0x6b
+    B_X_XX = 0x6b, RS
     #C54 = 0x6c
+    B_XX__ = 0x6c, RS
     #C55 = 0x6d
+    B_XX_X = 0x6d, RS
     #C56 = 0x6e
+    B_XXX_ = 0x6e, RS
     #C57 = 0x6f
+    B_XXXX = 0x6f, RS
     #C60 = 0x70  # CG6 top row
+    BX____ = 0x70, RS
     #C61 = 0x71
+    BX___X = 0x71, RS
     #C62 = 0x72
+    BX__X_ = 0x72, RS
     #C63 = 0x73
+    BX__XX = 0x73, RS
     #C64 = 0x74
+    BX_X__ = 0x74, RS
     #C65 = 0x75
+    BX_X_X = 0x75, RS
     #C66 = 0x76
+    BX_XX_ = 0x76, RS
     #C67 = 0x77
+    BX_XXX = 0x77, RS
     #C70 = 0x78  # CG7 top row
+    BXX___ = 0x78, RS
     #C71 = 0x79
+    BXX__X = 0x79, RS
     #C72 = 0x7a
+    BXX_X_ = 0x7a, RS
     #C73 = 0x7b
+    BXX_XX = 0x7b, RS
     #C74 = 0x7c
+    BXXX__ = 0x7c, RS
     #C75 = 0x7d
+    BXXX_X = 0x7d, RS
     #C76 = 0x7e
+    BXXXX_ = 0x7e, RS
     #C77 = 0x7f
+    BXXXXX = 0x7f, RS
 
     # DDRAM positioning:
     D00 = 0x80  # start of 1st row after HOM/CLR
@@ -256,67 +298,93 @@ if args.ltable:
 if args.prog:
     def out(c:str | Op):
         args.prog.write(
-            bytes([c.value.code]) if isinstance(c, Op)
-            else c.replace('█', '\xff')  ## HD44780 CGROM character set 0
+            str(c).replace('█', '\xff')  ## HD44780 CGROM character set 0
                   .replace('→', '\x7e')
                   .replace('←', '\x7f')
+                  .replace('▝', str(Op.CG0))  ## CGRAM chars
+                  .replace('▀', str(Op.CG1))
+                  .replace('▘', str(Op.CG2))
+                  .replace('▖', str(Op.CG3))
                   .encode('latin1')
         )
+
     def pause():
-        args.prog.write(bytes([Op.INI.value.code] * PAUSE_LENGTH))
-    out(Op.INI)
-    out(Op.CUR)
-    out(Op.EIN)
-    out(Op.CLR)
-    out(' CLR ███████████████')
-    out(Op.E00)
-    out('█ clears display and')
-    out(Op.D20)
-    out('█ resets to top-left')
-    out(Op.E20)
-    out('█ 0b_0000_0001  0x01')
+        args.prog.write(str(Op.INI) * PAUSE_LENGTH))
+
+    out(Op.INI + Op.CLR)
+
+    out(Op.C00)
+    out(Op.BXXXXX)  # CG0 "▝"
+    out(Op.B_XXXX)
+    out(Op.B__XXX)
+    out(Op.B___XX)
+    out(Op.B____X)
+    out(Op.B_____)
+    out(Op.B_____)
+    out(Op.B_____)
+    out(Op.BXXXXX)  # CG1 "▀"
+    out(Op.BXXXXX)
+    out(Op.BXXXXX)
+    out(Op.BXXXXX)
+    out(Op.BXXXXX)
+    out(Op.B_____)
+    out(Op.B_____)
+    out(Op.B_____)
+    out(Op.BXXXXX)  # CG2 "▘"
+    out(Op.BXXXX_)
+    out(Op.BXXX__)
+    out(Op.BXX___)
+    out(Op.BX____)
+    out(Op.B_____)
+    out(Op.B_____)
+    out(Op.B_____)
+    out(Op.B_____)  # CG3 "▖"
+    out(Op.B_____)
+    out(Op.B_____)
+    out(Op.BX____)
+    out(Op.BXX___)
+    out(Op.BXXX__)
+    out(Op.BXXXX_)
+    out(Op.BXXXXX)
+
+    out(Op.CUR + Op.EIN)
+    out(Op.D00 + ' CLR ▝▀▀▀▀▀▀▀▀▘ 0x01')
+    out(Op.E00 + '▖ clear display,    ')
+    out(Op.D20 + '█ reset start pos. &')
+    out(Op.E20 + '█ move to top-left  ')
     pause()
     out(Op.CLR)
     pause()
-    out(' HOM ███████████████')
-    out(Op.E00)
-    out('^ resets shift and')
-    out(Op.D20)
-    out('█ moves to top-left')
-    out(Op.E20)
-    out('█ 0b_0000_0010  0x02')
+    out(Op.D00 + ' HOM ▝▀▀▀▀▀▀▀▀▘ 0x02')
+    out(Op.E00 + '^ reset start pos. &')
+    out(Op.D20 + '█ move to top-left  ')
+    out(Op.E20 + '█                   ')
     out(Op.HOM)
     pause()
-    out(' EIN')
-    out(Op.E00)
-    out('█ increments after  ')
-    out(Op.D20)
-    out('█ each data transfer')
-    out(Op.E20)
-    out('█ 0b_0000_0110  0x06')
-    for i in range(PAUSE_LENGTH // 32):
-        out(Op.D05)
-        out('→ → → → → → → →')
-        out(Op.D05)
-        out('███████████████')
+    out(Op.D00 + ' EIN ▝▀▀▀▀▀▀▀▀▘ 0x06')
+    out(Op.E00 + '▖ increment after   ')
+    out(Op.D20 + '█ each data transfer')
+    out(Op.E20 + '█                   ')
+    for i in range(PAUSE_LENGTH // 36):
+        out(Op.E22 + '→ → → → → → → → →')
+        out(Op.E22 + '                 ')
     out(Op.EDN)
-    out(Op.D03)
-    out(' EDN'[::-1])
-    out(Op.E19)
-    out('█ decrements after  '[::-1])
-    out(Op.D39)
-    out('█ each data transfer'[::-1])
-    out(Op.E39)
-    out('█ 0b_0000_0100  0x04'[::-1])
-    for i in range(PAUSE_LENGTH // 32):
-        out(Op.D19)
-        out('← ← ← ← ← ← ← ←')
-        out(Op.D19)
-        out('███████████████')
+    out(Op.D19 + ' EDN ▝▀▀▀▀▀▀▀▀▘ 0x04'[::-1])
+    out(Op.E19 + '▖ decrement after   '[::-1])
+    out(Op.D39 + '█ each data transfer'[::-1])
+    out(Op.E39 + '█                   '[::-1])
+    for i in range(PAUSE_LENGTH // 36):
+        out(Op.E39 + '← ← ← ← ← ← ← ← ←')
+        out(Op.E39 + '                 ')
     out(Op.CLR)
     out(Op.EIS)
-    out('5. EIS increments & ')
-    out(Op.E00)
+    out(Op.D00 + ' EIS ▝▀▀▀▀▀▀▀▀▘ 0x07')
+    out(Op.E00 + '▖ increment & shift ')
+    out(Op.D20 + '█ start pos. after  ')
+    out(Op.E20 + '█ each data transfer')
+    pause()
+    out(Op.D00 + ' ' * 40)
+    out(Op.E00 + ' ' * 40)
     out('   shifts after each')
     pause()
     out(Op.CLR)
