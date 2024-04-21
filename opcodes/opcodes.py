@@ -27,8 +27,8 @@ class Op(IntEnum):
 
 
 p = argparse.ArgumentParser(description='Generate Opcode binaries')
-p.add_argument( '-l', dest='lookup', type=argparse.FileType('wb'))
-p.add_argument( '-p', dest='program', type=argparse.FileType('wb'))
+p.add_argument( '-l', dest='ltable', type=argparse.FileType('wb'))
+p.add_argument( '-p', dest='prog', type=argparse.FileType('wb'))
 args = p.parse_args()
 
 if args.lookup:
